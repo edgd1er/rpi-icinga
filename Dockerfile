@@ -18,6 +18,8 @@ RUN apt-get -qy update && \
  sed -i "s/post_max_size = 8M/post_max_size = $MAX_UPLOAD/" /etc/php/7.0/apache2/php.ini && \
  a2enmod php7.0 && a2enmod rewrite
 
+ADD files/apache2.conf /etc/icinga/apache2.conf
+ADD files/htpasswd.users etc/icinga/htpasswd.users
 ADD files/icinga.cfg /etc/icinga/icinga.cfg
 ADD files/cgi.cfg /etc/icinga/cgi.cfg
 ADD files/resource.cfg /etc/icinga/resource.cfg
@@ -32,8 +34,8 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 #Add nconf (https://github.com/Bonsaif/new-nconf/releases)
 RUN  cd /var/www/html/ && mkdir nconf && \
  wget $NCONFDL -O nconf.tar.gz && \
- tar -zxvf nconf.tar.gz -C nconf --strip-components=1 && ls -alH && \
- cd nconf && cp config.orig/* config/ && ls -alRH config* && \
+ tar -zxvf nconf.tar.gz -C nconf --strip-components=1 && \
+ cd nconf && cp config.orig/* config/ && \
  sed -i 's#\$nconfdir#\"/var/www/html/nconf\"#' /var/www/html/nconf/config/nconf.php && \
  sed -i 's#/var/www/nconf#/var/www/html/nconf/#' /var/www/html/nconf/config/nconf.php && \
  sed -i 's#/var/www/nconf/bin/nagios#/var/www/nconf/bin/icinga#' /var/www/html/nconf/config/nconf.php && \
@@ -41,15 +43,11 @@ RUN  cd /var/www/html/ && mkdir nconf && \
  sed -i 's/\"NConf\"/getenv\(\"MYSQL_DATABASE\"\)/' /var/www/html/nconf/config/mysql.php && \
  sed -i 's/\"nconf\"/getenv\(\"MYSQL_USER\"\)/' /var/www/html/nconf/config/mysql.php && \
  sed -i 's/\"link2db\"/getenv\(\"MYSQL_PASSWORD\"\)/' /var/www/html/nconf/config/mysql.php && \
- chown www-data:www-data -R ../nconf
-
-
-#Add network conf directory
-#RUN mkdir -p /usr/share/nagios/etc/Default_collector -p /usr/share/nagios/etc/global  && \
-# chown www-data:www-data /usr/share/nagios/etc/Default_collector /usr/share/nagios/etc/#global
+ chown www-data:www-data -R ../nconf && mkdir -p /etc/icinga/Default_collector/ /etc/icinga/global && \
+ chown www-data:www-data /etc/icinga/Default_collector /etc/icinga/global
 
 #copy nagios to allow nconf to validate conf
-RUN cp /usr/sbin/icinga /var/www/html/nconf/bin/ && \
+RUN cp /usr/sbin/icinga /var/www/html/nconf/bin/icinga && \
  chown www-data:www-data /var/www/html/nconf/bin/icinga
 
 #Allow www-data to reload nagios
