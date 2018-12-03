@@ -1,6 +1,6 @@
 # rpi-icinga + nconf
 
-[![GitHub Issues](https://img.shields.io/github/issues/acch/rpi-icinga.svg)](https://github.com/edgd1er/rpi-icinga/issues) [![GitHub Stars](https://img.shields.io/github/stars/edgd1er/rpi-icinga.svg?label=github%20%E2%98%85)](https://github.com/edgd1er/rpi-icinga/) [![Docker Pulls](https://img.shields.io/docker/pulls/edgd1er/rpi-icinga.svg)](https://hub.docker.com/r/edgd1er/rpi-icinga/) [![License](https://img.shields.io/github/license/edgd1er/rpi-icinga.svg)](LICENSE)
+[![GitHub Issues](https://img.shields.io/github/issues/edgd1er/rpi-icinga.svg)](https://github.com/edgd1er/rpi-icinga/issues) [![GitHub Stars](https://img.shields.io/github/stars/edgd1er/rpi-icinga.svg?label=github%20%E2%98%85)](https://github.com/edgd1er/rpi-icinga/) [![Docker Pulls](https://img.shields.io/docker/pulls/edgd1er/rpi-icinga.svg)](https://hub.docker.com/r/edgd1er/rpi-icinga-nconf/) [![License](https://img.shields.io/github/license/edgd1er/rpi-icinga.svg)](LICENSE)
 
 Raspberry Pi-compatible [Icinga](http://docs.icinga.com/latest/en/) + [nconf](https://github.com/Bonsaif/new-nconf/archive/nconf-v1.4.0-final2.tar.gz) Docker image. Includes [SSMTP](https://linux.die.net/man/8/ssmtp) for Email notifications.
 
@@ -8,14 +8,16 @@ Based on acch/rpi-icinga docker.
 
 ## Usage
 
-
-#
 ```
  docker run --rm \
   -p 80:80 \
   -v $(pwd)/etc:/etc/icinga \
   -v cache:/var/cache/icinga \
   -v $(pwd)/log:/var/log/icinga \
+  -e MYSQL_HOST=mysqlServerHostname
+  -e MYSQL_USER=user
+  -e MYSQL_PASSWORD=password
+  -e MYSQL_DATABASE=database
   edgd1er/rpi-icinga-nconf
 ```
 
@@ -86,6 +88,13 @@ execute at first container's run
 ```
 mysql -u$MYSQL_USER -p$MYSQL_PASSWORD -h$MYSQL_HOST -D$MYSQL_DATABASE -e /usr/share/icinga/create_database.sql 
 ```
+
+
+### URLS
+
+icinga: ```http://ip:port/icinga/```
+
+nconf: ```https://ip:port/nconf/```
 
 ## Copyright
 
