@@ -1,0 +1,25 @@
+version: '3.1'
+services:
+    icinga:
+     image: edgd1er/rpi-icinga-nconf:latest
+     restart: unless-stopped
+     ports:
+        - "8008:80"
+     volumes:
+      - ${pwd}/etc/:/etc/icinga
+     env_file:
+       - envMysql
+     networks:
+      - pihole_nginx-net
+     tmpfs:
+        - /var/log/icinga
+        - /var/cache/icinga
+     depends_on:
+        - nconf-mysql
+    nconf-mysql:
+      env_file:
+      - envMysql
+      image: mysql:5.7
+      restart: unless-stopped
+      expose:
+      - "3306"

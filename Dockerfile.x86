@@ -1,4 +1,4 @@
-FROM resin/rpi-raspbian:stretch
+FROM debian:stretch-slim
 LABEL maintainer=edgd1er
 
 # Install prerequisites
@@ -8,8 +8,6 @@ ENV MYSQL_HOST=localhost
 ENV MYSQL_USER=nconf
 ENV MYSQL_PASSWORD=nconf
 ENV MYSQL_DATABASE=nconf
-
-RUN [ "cross-build-start" ]
 
 RUN apt-get -qy update && \
  apt-get -qy install vim sed wget apache2 mysql-client icinga icinga-doc nagios-nrpe-plugin ssmtp supervisor\
@@ -82,5 +80,3 @@ EXPOSE 80
 # Start services via Supervisor
 ENTRYPOINT ["/usr/bin/supervisord"]
 CMD ["-c","/etc/supervisor/conf.d/supervisord.conf"]
-
-RUN [ "cross-build-end" ]

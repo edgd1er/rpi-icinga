@@ -1,5 +1,5 @@
-DOCKER=/bin/docker
-DOCKER_IMAGE_NAME=acch/rpi-icinga
+DOCKER=/usr/bin/docker
+DOCKER_IMAGE_NAME=edgd1er/rpi-icinga-nconf:armhf
 DOCKER_BASE_NAME=resin/rpi-raspbian
 DOCKER_BASE_VERSION=stretch
 
