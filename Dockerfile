@@ -38,8 +38,8 @@ RUN  cd /var/www/html/ && mkdir nconf && \
  tar -zxf nconf.tar.gz -C nconf --strip-components=1 && \
  cd nconf && cp config.orig/* config/ && \
  sed -i 's#\$nconfdir#\"/var/www/html/nconf\"#' /var/www/html/nconf/config/nconf.php && \
- sed -i 's#/var/www/nconf#/var/www/html/nconf/#' /var/www/html/nconf/config/nconf.php && \
- sed -i 's#/var/www/nconf/bin/nagios#/var/www/nconf/bin/icinga#' /var/www/html/nconf/config/nconf.php && \
+ sed -i 's#/var/www/nconf#/var/www/html/nconf#' /var/www/html/nconf/config/nconf.php && \
+ sed -i 's#/var/www/html/nconf/bin/nagios#/var/www/html/nconf/bin/icinga#' /var/www/html/nconf/config/nconf.php && \
  sed -i 's/\"localhost\"/getenv\(\"MYSQL_HOST\"\)/' /var/www/html/nconf/config/mysql.php && \
  sed -i 's/\"NConf\"/getenv\(\"MYSQL_DATABASE\"\)/' /var/www/html/nconf/config/mysql.php && \
  sed -i 's/\"nconf\"/getenv\(\"MYSQL_USER\"\)/' /var/www/html/nconf/config/mysql.php && \
