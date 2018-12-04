@@ -89,6 +89,7 @@ execute at first container's run
 mysql -u$MYSQL_USER -p$MYSQL_PASSWORD -h$MYSQL_HOST -D$MYSQL_DATABASE -e /usr/share/icinga/create_database.sql 
 ```
 
+/!\ during the script execution, access to the database is define for nconf, the file  /var/ww/html/nconf/config/mysql.php is populated with envMysql values.
 
 ### URLS
 

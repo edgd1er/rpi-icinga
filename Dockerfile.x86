@@ -37,17 +37,20 @@ RUN  cd /var/www/html/ && mkdir nconf && \
  sed -i 's#\$nconfdir#\"/var/www/html/nconf\"#' /var/www/html/nconf/config/nconf.php && \
  sed -i 's#/var/www/nconf#/var/www/html/nconf#' /var/www/html/nconf/config/nconf.php && \
  sed -i 's#/var/www/html/nconf/bin/nagios#/var/www/html/nconf/bin/icinga#' /var/www/html/nconf/config/nconf.php && \
- sed -i 's/\"localhost\"/getenv\(\"MYSQL_HOST\"\)/' /var/www/html/nconf/config/mysql.php && \
- sed -i 's/\"NConf\"/getenv\(\"MYSQL_DATABASE\"\)/' /var/www/html/nconf/config/mysql.php && \
- sed -i 's/\"nconf\"/getenv\(\"MYSQL_USER\"\)/' /var/www/html/nconf/config/mysql.php && \
- sed -i 's/\"link2db\"/getenv\(\"MYSQL_PASSWORD\"\)/' /var/www/html/nconf/config/mysql.php && \
+ sed -i 's/\"localhost\"/\"nconf-mysql\"/' /var/www/html/nconf/config/mysql.php && \
+ sed -i 's/\"NConf\"/\"nconfdb\"/' /var/www/html/nconf/config/mysql.php && \
+ sed -i 's/\"nconf\"/\"nconf_user\"/' /var/www/html/nconf/config/mysql.php && \
+ sed -i 's/\"link2db\"/\"changeIt\"/' /var/www/html/nconf/config/mysql.php && \
  chown www-data:www-data -R ../nconf && mkdir -p /etc/icinga/Default_collector/ /etc/icinga/global && \
  chown www-data:www-data /etc/icinga/Default_collector /etc/icinga/global && \
  chmod 744 /usr/share/icinga/create_database.sh
 
+#add local deployment
+ADD files/deployment.ini /var/www/html/nconf/config/deployment.ini
+
 #Add network conf directory
-#RUN mkdir -p /usr/share/nagios/etc/Default_collector -p /usr/share/nagios/etc/global  && \
-# chown www-data:www-data /usr/share/nagios/etc/Default_collector /usr/share/nagios/etc/#global
+RUN mkdir -p /etc/icinga/Default_collector -p /etc/icinga/global  && \
+ chown www-data:www-data /var/www/html/nconf/config/* && chmod 744 /var/www/html/nconf/config/*
 
 #copy nagios to allow nconf to validate conf
 RUN cp /usr/sbin/icinga /var/www/html/nconf/bin/icinga && \
