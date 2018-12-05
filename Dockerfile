@@ -12,7 +12,7 @@ ENV MYSQL_DATABASE=nconf
 RUN [ "cross-build-start" ]
 
 RUN apt-get -qy update && \
- apt-get -qy install vim sed wget apache2 mysql-client icinga icinga-doc nagios-nrpe-plugin ssmtp supervisor\
+ apt-get -qy install vim sed wget apache2 mysql-client icinga icinga-doc nagios-nrpe-plugin ssmtp sudo supervisor\
  php7.0 php7.0-mysql libapache2-mod-php7.0 && rm -rf /var/lib/apt/lists/* && \
  sed -i "s/upload_max_filesize = 2M/upload_max_filesize = $MAX_UPLOAD/" /etc/php/7.0/apache2/php.ini && \
  sed -i "s/post_max_size = 8M/post_max_size = $MAX_UPLOAD/" /etc/php/7.0/apache2/php.ini && \
@@ -25,6 +25,7 @@ ADD files/cgi.cfg /etc/icinga/cgi.cfg
 ADD files/resource.cfg /etc/icinga/resource.cfg
 ADD files/create_database.sh /usr/share/icinga/create_database.sh
 ADD files/create_database.sql /usr/share/icinga/create_database.sql
+ADD files/import_existing_nconf_into_db.sh /usr/share/icinga/import_existing_nconf_into_db.sh
 
 # Add Rasperry-Pi logos
 COPY raspberry/ /usr/share/icinga/htdocs/images/logos/raspberry/
@@ -35,7 +36,7 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 #Add nconf (https://github.com/Bonsaif/new-nconf/releases)
 RUN  cd /var/www/html/ && mkdir nconf && \
  wget $NCONFDL -O nconf.tar.gz && \
- tar -zxf nconf.tar.gz -C nconf --strip-components=1 && \
+ tar -zxf nconf.tar.gz -C nconf --strip-components=1 && rm nconf.tar.gz && \
  cd nconf && cp config.orig/* config/ && \
  sed -i 's#\$nconfdir#\"/var/www/html/nconf\"#' /var/www/html/nconf/config/nconf.php && \
  sed -i 's#/var/www/nconf#/var/www/html/nconf#' /var/www/html/nconf/config/nconf.php && \
@@ -46,7 +47,7 @@ RUN  cd /var/www/html/ && mkdir nconf && \
  sed -i 's/\"link2db\"/\"changeIt\"/' /var/www/html/nconf/config/mysql.php && \
  chown www-data:www-data -R ../nconf && mkdir -p /etc/icinga/Default_collector/ /etc/icinga/global && \
  chown www-data:www-data /etc/icinga/Default_collector /etc/icinga/global && \
- chmod 744 /usr/share/icinga/create_database.sh
+ chmod 744 /usr/share/icinga/*.sh
 
 #add local deployment
 ADD files/deployment.ini /var/www/html/nconf/config/deployment.ini
