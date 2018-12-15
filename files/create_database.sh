@@ -39,6 +39,11 @@ setRights(){
 
 ## Main
 
-createDatabase
-generateMysql
+res=$(mysql -u$MYSQL_USER -p$MYSQL_PASSWORD -h$MYSQL_HOST -D$MYSQL_DATABASE -Be 'show tables;')
+ret=$?
+
+if [ $ret -ne 0 -o $(echo $res | wc -w) -lt 7 ]; then
+    createDatabase
+    generateMysql
+fi
 setRights
