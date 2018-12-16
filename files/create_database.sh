@@ -38,6 +38,8 @@ setRights(){
 }
 
 ## Main
+# wait for mysql to be ready.
+sleep 30
 
 res=$(mysql -u$MYSQL_USER -p$MYSQL_PASSWORD -h$MYSQL_HOST -D$MYSQL_DATABASE -Be 'show tables;')
 ret=$?
