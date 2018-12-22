@@ -32,7 +32,8 @@ EOF
 
 setRights(){
     echo setting rights for cache/icinga directory
-    chown nagios:www-data /var/cache/icinga/
+    chown nagios:nagios /var/cache/icinga/
+    chmod 777 /var/cache/icinga/.
     chmod 744 /var/cache/icinga/
 
 }
