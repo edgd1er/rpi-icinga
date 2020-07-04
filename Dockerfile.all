@@ -39,9 +39,9 @@ COPY raspberry/ /usr/share/icinga/htdocs/images/logos/raspberry/
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 #Add nconf (https://github.com/Bonsaif/new-nconf/releases)
-COPY nconf.tar.gz /var/www/html/
+#COPY nconf.tar.gz /var/www/html/
 RUN  cd /var/www/html/ && mkdir nconf && \
- #wget -q $NCONFDL -O nconf.tar.gz && \
+ wget -q $NCONFDL -O nconf.tar.gz && \
  tar -zxf nconf.tar.gz -C nconf --strip-components=1 && rm nconf.tar.gz && \
  cd nconf && cp config.orig/* config/ && \
  sed -i 's#\$nconfdir#\"/var/www/html/nconf\"#' /var/www/html/nconf/config/nconf.php && \
