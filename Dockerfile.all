@@ -51,20 +51,18 @@ RUN  cd /var/www/html/ && mkdir nconf && \
  sed -i 's/\"NConf\"/\"nconfdb\"/' /var/www/html/nconf/config/mysql.php && \
  sed -i 's/\"nconf\"/\"nconf_user\"/' /var/www/html/nconf/config/mysql.php && \
  sed -i 's/\"link2db\"/\"changeIt\"/' /var/www/html/nconf/config/mysql.php && \
- chown www-data:www-data -R ../nconf && mkdir -p /etc/icinga/Default_collector/ -p /etc/icinga/global && \
+ echo "supervisorctl restart icinga" > /etc/init.d/icinga && \
+ chown www-data:www-data -R ../nconf /etc/init.d/icinga && mkdir -p /etc/icinga/Default_collector/ -p /etc/icinga/global && \
  chown www-data:www-data /etc/icinga/Default_collector /etc/icinga/global && \
  chown www-data:www-data /var/www/html/nconf/config/* && chmod 744 /var/www/html/nconf/config/* && \
- chmod 744 /usr/share/icinga/create_database.sh /usr/share/icinga/import_existing_nconf_into_db.sh && \
- ls -al /etc/icinga
-
+ chmod 744 /usr/share/icinga/create_database.sh /etc/init.d/icinga /usr/share/icinga/import_existing_nconf_into_db.sh
 #add local deployment
 ADD files/deployment.ini /var/www/html/nconf/config/deployment.ini
 
 #copy nagios to allow nconf to validate conf
 RUN cp /usr/sbin/icinga /var/www/html/nconf/bin/icinga && \
  chown -R www-data:www-data /var/www/html/nconf/bin/icinga && \
- chown nagios:nagios /var/cache/icinga/ /var/log/icinga/ && \
- ls -al /etc/icinga
+ chown nagios:nagios /var/cache/icinga/ /var/log/icinga/
 
 #Allow www-data to reload nagios
 RUN echo "www-data ALL=NOPASSWD:/etc/init.d/icinga reload" | tee -a /etc/sudoers
@@ -97,9 +95,7 @@ RUN if [ -n $aptcacher ]; then echo "" > /etc/apt/apt.conf.d/01proxy; fi
 EXPOSE 80
 
 HEALTHCHECK --interval=5s --timeout=3s --retries=3 \
- CMD curl --fail http://localhost/here.html | [[ $(grep -c ok) -eq 1 ]] && exit 0 || exit 1
-
-RUN ls -al /etc/icinga
+ CMD curl --fail http://localhost/icinga/main.html | [[ $(grep -c ok) -eq 1 ]] && exit 0 || exit 1
 
 # Start services via Supervisor
 ENTRYPOINT ["/usr/bin/supervisord"]
