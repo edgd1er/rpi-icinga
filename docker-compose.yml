@@ -1,25 +1,32 @@
 version: '3.1'
 services:
-    icinga:
-     image: edgd1er/rpi-icinga-nconf:latest
-     restart: unless-stopped
-     ports:
-        - "8008:80"
-     volumes:
-      - ${pwd}/etc/:/etc/icinga
-     env_file:
-       - envMysql
-     networks:
-      - pihole_nginx-net
-     tmpfs:
-        - /var/log/icinga
-        - /var/cache/icinga
-     depends_on:
-        - nconf-mysql
-    nconf-mysql:
-      env_file:
+  icinga:
+    image: edgd1er/rpi-icinga-nconf:latest
+    build:
+      dockerfile: Dockerfile.all
+      context: .
+      args:
+        aptcache: 192.168.53.208
+    restart: unless-stopped
+    ports:
+      - "8008:80"
+    #volumes:
+    #  - ./etc/:/etc/icinga
+    env_file:
       - envMysql
-      image: mysql:5.7
-      restart: unless-stopped
-      expose:
-      - "3306"
+    #networks:
+    # - pihole_nginx-net
+    tmpfs:
+      - /var/log/icinga
+      - /var/cache/icinga
+    depends_on:
+      - nconf-mysql
+
+  nconf-mysql:
+    image: mariadb/server
+    ports:
+      - 3326:3306
+    restart:
+      unless-stopped
+    env_file:
+      - envMysql
