@@ -18,13 +18,14 @@ ENV MYSQL_DATABASE=nconf
 RUN if [ -n ${aptcacher} ]; then echo "Acquire::http::Proxy \"http://${aptcacher}:3142\";" >/etc/apt/apt.conf.d/01proxy && \
     echo "Acquire::https::Proxy \"http://${aptcacher}:3142\";" >>/etc/apt/apt.conf.d/01proxy ; fi
 RUN apt-get update &&  \
- apt-get install -qy vim sed wget apache2 mariadb-client icinga icinga-doc nagios-nrpe-plugin msmtp sudo supervisor\
+ apt-get install -qy vim sed wget apache2 mariadb-client icinga icinga-doc nagios-nrpe-plugin msmtp msmtp-mta sudo supervisor\
  php7.3 php7.3-mysql libapache2-mod-php7.3 && rm -rf /var/lib/apt/lists/* && ls -al /etc/php* && \
  sed -i "s/upload_max_filesize = 2M/upload_max_filesize = $MAX_UPLOAD/" /etc/php/7.3/apache2/php.ini && \
  sed -i "s/post_max_size = 8M/post_max_size = $MAX_UPLOAD/" /etc/php/7.3/apache2/php.ini && \
  a2enmod php7.3 && a2enmod rewrite
 
 ADD files/icinga.cfg /etc/icinga/icinga.cfg
+ADD files/apache2.conf etc/apache2/conf-enabled/icinga.conf
 ADD files/htpasswd.users etc/icinga/htpasswd.users
 ADD files/cgi.cfg /etc/icinga/cgi.cfg
 ADD files/resource.cfg /etc/icinga/resource.cfg
@@ -59,24 +60,24 @@ RUN  cd /var/www/html/ && mkdir nconf && \
 #add local deployment
 ADD files/deployment.ini /var/www/html/nconf/config/deployment.ini
 
+#Allow www-data to reload nagios
+RUN echo "www-data ALL=NOPASSWD:/usr/bin/supervisorctl restart icinga" | tee -a /etc/sudoers
+
 #copy nagios to allow nconf to validate conf
+
 RUN cp /usr/sbin/icinga /var/www/html/nconf/bin/icinga && \
  chown -R www-data:www-data /var/www/html/nconf/bin/icinga && \
- chown nagios:nagios /var/cache/icinga/ /var/log/icinga/
-
-#Allow www-data to reload nagios
-RUN echo "www-data ALL=NOPASSWD:/etc/init.d/icinga reload" | tee -a /etc/sudoers
+ chown nagios:nagios /var/cache/icinga/ /var/log/icinga/ && \
+ usermod -a -G nagios www-data
 
 # Secure SSMTP configuration
-RUN find / -iname msmtp* -type f && \
-  if [ ! -f msmtprc ]; then touch /etc/msmtprc; fi ; \
-  #mv /etc/msmtprc /etc/icinga/  && \
-  ls -al /etc/icinga
-  #ln -snf /etc/icinga/msmtprc /etc/msmtprc && \
-  #chown :msmtp /etc/icinga/msmtprc && \
-  #chown :msmtp /usr/bin/msmtp && \
-  #chmod 640 /etc/icinga/msmtprc && \
-  #chmod g+s /usr/bin/msmtp
+RUN if [ ! -f msmtprc ]; then touch /etc/msmtprc; fi ; \
+  mv /etc/msmtprc /etc/icinga/  && \
+  ln -snf /etc/icinga/msmtprc /etc/msmtprc && \
+  chown :msmtp /etc/icinga/msmtprc && \
+  chown :msmtp /usr/bin/msmtp && \
+  chmod 640 /etc/icinga/msmtprc && \
+  chmod g+s /usr/bin/msmtp
 
 # Fix external commands
 RUN chmod 2770 /var/lib/icinga/rw
