@@ -7,4 +7,3 @@ MYSQL_DATABASE=nconfdb
 MYSQL_USER=nconf_user
 MYSQL_PASSWORD=changeIt
 MYSQL_HOST_PORT=3306
-TZ=Europe/Paris
