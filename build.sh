@@ -26,7 +26,9 @@ shift $((OPTIND-1))
 
 ##add amd if running on amd
 [[ $(uname -m) =~ "x86_64" ]] && PTF+=",linux/amd64"
-docker buildx build ${WHERE} --platform ${PTF} --build-arg aptcacher=${aptcacher} -f Dockerfile.all -t edgd1er/ntopng-docker:latest .
+# load tag is not compatible with multi ptf.
+docker buildx build --platform ${PTF} --build-arg aptcacher=${aptcacher} -f Dockerfile.all -t edgd1er/rpi-icinga:latest .
+docker buildx build ${WHERE} -f Dockerfile.all --build-arg aptcacher=${aptcacher} -t edgd1er/rpi-icinga:latest .
 ret=$?
 [[ ${ret} != "0" ]] && echo "\n error while building image" && exit 1
 

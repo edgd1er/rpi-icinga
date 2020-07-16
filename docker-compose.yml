@@ -12,13 +12,16 @@ services:
       - "8008:80"
     #volumes:
     #  - ./etc/:/etc/icinga
+    environment:
+      TZ: "Europe/Paris"
     env_file:
       - envMysql
+      - envMsmtp
     #networks:
     # - pihole_nginx-net
     tmpfs:
       - /var/log/icinga
-      - /var/cache/icinga
+      #- /var/cache/icinga
     depends_on:
       - nconf-mysql
 
