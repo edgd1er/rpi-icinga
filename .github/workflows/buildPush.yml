@@ -1,4 +1,4 @@
-name: build ntopng-docker multi-arch images
+name: build rpi-icinga-nconf multi-arch images
 
 on:
   push:
@@ -24,7 +24,7 @@ jobs:
           echo "${{secrets.DOCKER_PASSWORD}}" | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
       - name: Run Buildx
         run: |
-          docker buildx build --output "type=image,push=false" --platform linux/arm/v7,linux/amd64  -f Dockerfile.all -t edgd1er/rpi-icinga:latest .
+          docker buildx build --output "type=image,push=true" --platform linux/arm/v7,linux/amd64  -f Dockerfile.all -t edgd1er/rpi-icinga:latest .
       - name: clean
         if: always() && github.event_name != 'pull_request'
         run: |
