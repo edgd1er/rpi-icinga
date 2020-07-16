@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile.all
       context: .
       args:
-        aptcache: 192.168.53.208
+        aptcache:
     restart: unless-stopped
     ports:
       - "8008:80"
