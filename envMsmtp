@@ -1,0 +1,7 @@
+#smtp credentials
+SMTP_HOST=smtp.myisp.tld
+SMTP_PORT=1234
+SMTP_FROM=send_adress@domain.tld
+SMTP_USER=recipient@doamin.tld
+SMTP_PWD=smtp_password
+SMTP_STARTTLS=on
