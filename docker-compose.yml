@@ -1,4 +1,4 @@
-version: '3.1'
+version: '3.5'
 services:
   icinga:
     image: edgd1er/rpi-icinga-nconf:latest
@@ -23,9 +23,9 @@ services:
       - /var/log/icinga
       #- /var/cache/icinga
     depends_on:
-      - nconf-mysql
+      - db
 
-  nconf-mysql:
+  db:
     image: mariadb/server
     ports:
       - 3326:3306

@@ -2,7 +2,7 @@
 #Allow root access from all hosts within docker network
 MYSQL_ROOT_HOST=%
 MYSQL_ROOT_PASSWORD=changeItToo
-MYSQL_HOST=nconf-mysql
+MYSQL_HOST=mysql
 MYSQL_DATABASE=nconfdb
 MYSQL_USER=nconf_user
 MYSQL_PASSWORD=changeIt
