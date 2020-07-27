@@ -15,13 +15,13 @@ services:
     environment:
       TZ: "Europe/Paris"
     env_file:
-      - envMysql
+      - envMysql.icinga
       - envMsmtp
     #networks:
     # - pihole_nginx-net
     tmpfs:
       - /var/log/icinga
-      #- /var/cache/icinga
+      - /var/cache/icinga
     depends_on:
       - db
 
