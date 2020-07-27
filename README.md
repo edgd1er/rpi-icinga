@@ -15,7 +15,8 @@ Based on acch/rpi-icinga docker.
 * multi-arch thanks to buildx ( arm, amd64 )
 * based on latest debian:buster-slim (Dockerfile.all)
 * apache 2.4
-* icinga 1.14.2 / Nconf 1.4
+* [icinga 1.14.2](https://github.com/Icinga/icinga-core) / [Nconf 1.4](https://github.com/Bonsaif/new-nconf/releases)
+Both are EOL and icinga 1.x is a read only repository.
 
 ## Usage
 
