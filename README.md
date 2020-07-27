@@ -1,10 +1,21 @@
 # rpi-icinga + nconf
 
-[![GitHub Issues](https://img.shields.io/github/issues/edgd1er/rpi-icinga.svg)](https://github.com/edgd1er/rpi-icinga/issues) [![GitHub Stars](https://img.shields.io/github/stars/edgd1er/rpi-icinga.svg?label=github%20%E2%98%85)](https://github.com/edgd1er/rpi-icinga/) [![Docker Pulls](https://img.shields.io/docker/pulls/edgd1er/rpi-icinga.svg)](https://hub.docker.com/r/edgd1er/rpi-icinga-nconf/) [![License](https://img.shields.io/github/license/edgd1er/rpi-icinga.svg)](LICENSE)
+[![GitHub Issues](https://img.shields.io/github/issues/edgd1er/rpi-icinga.svg)](https://github.com/edgd1er/rpi-icinga/issues) 
+[![GitHub Stars](https://img.shields.io/github/stars/edgd1er/rpi-icinga.svg?label=github%20%E2%98%85)](https://github.com/edgd1er/rpi-icinga/) 
 
-Raspberry Pi-compatible [Icinga](http://docs.icinga.com/latest/en/) + [nconf](https://github.com/Bonsaif/new-nconf/archive/nconf-v1.4.0-final2.tar.gz) Docker image. Includes [SSMTP](https://linux.die.net/man/8/ssmtp) for Email notifications.
+[![Docker Pulls](https://img.shields.io/docker/pulls/edgd1er/rpi-icinga-nconf.svg)](https://hub.docker.com/r/edgd1er/rpi-icinga-nconf/) [![License](https://img.shields.io/github/license/edgd1er/rpi-icinga.svg)](LICENSE)
+
+
+Raspberry Pi-compatible [Icinga](https://icinga.com/docs/icinga1/latest/en/) + [nconf](https://github.com/Bonsaif/new-nconf/archive/nconf-v1.4.0-final2.tar.gz) Docker image. Includes [mSMTP](https://wiki.debian.org/msmtp) for Email notifications.
 
 Based on acch/rpi-icinga docker.
+
+## Informations
+
+* multi-arch thanks to buildx ( arm, amd64 )
+* based on latest debian:buster-slim (Dockerfile.all)
+* apache 2.4
+* icinga 1.14.2 / Nconf 1.4
 
 ## Usage
 
@@ -18,6 +29,11 @@ Based on acch/rpi-icinga docker.
   -e MYSQL_USER=user
   -e MYSQL_PASSWORD=password
   -e MYSQL_DATABASE=database
+  -e MYSQL_PORT=3306
+  -e SMTP_HOST=smtp.domain.tld
+  -e SMTP_FROM=useremail@domain.tld
+  -e SMTP_USER=username
+  -e SMTP_PWD=password
   edgd1er/rpi-icinga-nconf
 ```
 
@@ -39,6 +55,7 @@ services:
       - ${pwd}/etc/:/etc/icinga
      env_file:
        - envMysql
+       - envMsmtp
      tmpfs:
         - /var/log/icinga
         - /var/cache/icinga
@@ -52,6 +69,23 @@ services:
       expose:
       - "3306"
 ```
+
+### envMysql:
+
+MYSQL_ROOT_HOST=%
+MYSQL_ROOT_PASSWORD=changeItToo
+MYSQL_HOST=nconf-mysql
+MYSQL_DATABASE=nconfdb
+MYSQL_USER=nconf_user
+MYSQL_PASSWORD=changeIt
+MYSQL_HOST_PORT=3306
+
+### envMsmtp
+
+SMTP_HOST="smtp.domain.tld"
+SMTP_FROM="sender_email"
+SMTP_USER="sender_login"
+SMTP_PWD="sender_password"
 
 ## Volumes
 
@@ -82,12 +116,7 @@ Icinga does not set any default password for the admin user. Run the following c
 
 ### create database.
 
-Nconf needs a database to operate. database credentials (login, pwd, db name) are set in envMysql. 
-
-execute at first container's run
-```
-mysql -u$MYSQL_USER -p$MYSQL_PASSWORD -h$MYSQL_HOST -D$MYSQL_DATABASE -e /usr/share/icinga/create_database.sql 
-```
+Nconf needs a database to operate. database credentials (login, pwd, db name) are set in envMysql. Start script create the schema if missing.
 
 /!\ during the script execution, access to the database is define for nconf, the file  /var/ww/html/nconf/config/mysql.php is populated with envMysql values.
 
@@ -99,4 +128,4 @@ nconf: ```https://ip:port/nconf/```
 
 ## Copyright
 
-Copyright 2017 Achim Christ, released under the [MIT license](LICENSE)
+Copyright 2020 edgd1er, released under the [MIT license](LICENSE)
