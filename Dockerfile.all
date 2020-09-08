@@ -33,7 +33,9 @@ ADD files/cgi.cfg /etc/icinga/cgi.cfg
 ADD files/resource.cfg /etc/icinga/resource.cfg
 ADD files/create_database.sh /usr/share/icinga/create_database.sh
 ADD files/create_database.sql /usr/share/icinga/create_database.sql
-ADD files/import_existing_nconf_into_db.sh /usr/share/icinga/import_existing_nconf_into_db.sh
+ADD files/import_existing_nconf_into_db.sh /usr/share/icinga/
+ADD files/backupConfs.sh /usr/share/icinga/
+ADD files/import_db_backup.sh /usr/share/icinga/
 
 # Add Rasperry-Pi logos
 COPY raspberry/ /usr/share/icinga/htdocs/images/logos/raspberry/
@@ -53,7 +55,7 @@ RUN  cd /var/www/html/ && mkdir nconf && \
  sed -i 's/\"NConf\"/\"nconfdb\"/' /var/www/html/nconf/config/mysql.php && \
  sed -i 's/\"nconf\"/\"nconf_user\"/' /var/www/html/nconf/config/mysql.php && \
  sed -i 's/\"link2db\"/\"changeIt\"/' /var/www/html/nconf/config/mysql.php && \
- mkdir -p /etc/icinga/Default_collector/ -p /etc/icinga/global -p /var/log/icinga/archives \
+ mkdir -p /etc/icinga/Default_collector/ -p /etc/icinga/global -p /var/log/icinga/archives -p /var/archives/ \
   /var/www/html/nconf/output /var/www/html/nconf/config /var/www/html/nconf/output \
   /var/www/html/nconf/static_cfg /var/www/html/nconf/temp && \
  find /var/www/html/nconf -type d -exec chmod 755 {} \; && \
@@ -62,7 +64,8 @@ RUN  cd /var/www/html/ && mkdir nconf && \
  ls -al /var/www/html/nconf/ && \
 chown www-data:www-data /var/www/html/nconf/config /var/www/html/nconf/temp /var/www/html/nconf/output \
  /var/www/html/nconf/static_cfg && chmod 644 /var/www/html/nconf/config/* && \
- chmod 744 /usr/share/icinga/create_database.sh /usr/share/icinga/import_existing_nconf_into_db.sh && \
+ chmod 744 /usr/share/icinga/create_database.sh /usr/share/icinga/import_db_backup.sh \
+ /usr/share/icinga/import_existing_nconf_into_db.sh /usr/share/icinga/backupConfs.sh && \
  chmod a+x /var/www/html/nconf/bin/*
 
 #add local deployment
@@ -79,7 +82,9 @@ RUN cp /usr/sbin/icinga /var/www/html/nconf/bin/icinga && \
  chown -R nagios:nagios /var/cache/icinga /var/log/icinga && \
  chmod 755 /var/log/icinga /var/cache/icinga /var/log/icinga/archives && \
  touch /var/log/icinga/icinga.log && \
- chmod 644 /var/log/icinga/icinga.log
+ chmod 644 /var/log/icinga/icinga.log && \
+ # Fix external commands && \
+ chmod 2770 /var/lib/icinga/rw
 
 # Secure SSMTP configuration
 RUN if [ ! -f msmtprc ]; then touch /etc/msmtprc; fi ; \
@@ -91,9 +96,6 @@ RUN if [ ! -f msmtprc ]; then touch /etc/msmtprc; fi ; \
   chown :msmtp /usr/bin/msmtp && \
   chmod 640 /etc/icinga/msmtprc && \
   chmod g+s /usr/bin/msmtp
-
-# Fix external commands
-RUN chmod 2770 /var/lib/icinga/rw
 
 # Timezone configuration
 ENV TZ=${TZ}

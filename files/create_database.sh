@@ -32,6 +32,7 @@ define('DBPASS', "$MYSQL_PASSWORD");
 EOF
 }
 
+#needed when /var/cache is mounted
 setRights(){
     echo setting rights for cache/icinga directory
     chown nagios:nagios /var/cache/icinga/
@@ -102,7 +103,8 @@ if [ $ret -ne 0 -o $(echo $res | wc -w) -lt 7 ]; then
 fi
 
 generateMysql
-#setRights
+#needed when /var/cache is mounted
+setRights
 setMailConfig
 sed -i.bak "s/LogLevel .*$/LogLevel debug/" /etc/apache2/apache2.conf
 
