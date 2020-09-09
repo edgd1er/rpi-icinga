@@ -12,6 +12,7 @@ ENV MYSQL_HOST=localhost
 ENV MYSQL_USER=nconf
 ENV MYSQL_PASSWORD=nconf
 ENV MYSQL_DATABASE=nconf
+ENV PHPVER=7.3
 
 #add apt-cacher setting if present:
 RUN if [ -n ${aptcacher} ]; then echo "Acquire::http::Proxy \"http://${aptcacher}:3142\";" >/etc/apt/apt.conf.d/01proxy && \
@@ -20,22 +21,26 @@ RUN if [ -n ${aptcacher} ]; then echo "Acquire::http::Proxy \"http://${aptcacher
 #install icinga
 RUN apt-get update && apt-get upgrade -y && \
  apt-get install -qy vim sed wget apache2 mariadb-client icinga icinga-doc nagios-nrpe-plugin msmtp msmtp-mta sudo supervisor\
- php7.3 php7.3-mysql libapache2-mod-php7.3 && rm -rf /var/lib/apt/lists/* && ls -al /etc/php* && \
- sed -i "s/upload_max_filesize = 2M/upload_max_filesize = $MAX_UPLOAD/" /etc/php/7.3/apache2/php.ini && \
- sed -i "s/post_max_size = 8M/post_max_size = $MAX_UPLOAD/" /etc/php/7.3/apache2/php.ini && \
- sed -i "s#;sendmail_path =#sendmail_path =\"/usr/bin/msmtp -t -C /etc/msmtprc\"#" /etc/php/7.3/apache2/php.ini && \
- a2enmod php7.3 && a2enmod rewrite
+ php${PHPVER} php${PHPVER}-mysql libapache2-mod-php${PHPVER} && rm -rf /var/lib/apt/lists/* && ls -al /etc/php* && \
+ sed -i "s/upload_max_filesize = 2M/upload_max_filesize = $MAX_UPLOAD/" /etc/php/${PHPVER}/apache2/php.ini && \
+ sed -i "s/post_max_size = 8M/post_max_size = $MAX_UPLOAD/" /etc/php/${PHPVER}/apache2/php.ini && \
+ sed -i "s#;sendmail_path =#sendmail_path =\"/usr/bin/msmtp -t -C /etc/msmtprc\"#" /etc/php/${PHPVER}/apache2/php.ini && \
+ sed -i '/DocumentRoot.*/a \ \tRewriteEngine on\n\tRewriteRule   "^/$" "/icinga/" [R]' /etc/apache2/sites-available/000-default.conf && \
+ a2enmod php${PHPVER} && a2enmod rewrite
 
 ADD files/icinga.cfg /etc/icinga/icinga.cfg
-ADD files/apache2.conf etc/apache2/conf-enabled/icinga.conf
-ADD files/htpasswd.users etc/icinga/htpasswd.users
+ADD files/apache2.conf /etc/apache2/conf-enabled/icinga.conf
+ADD files/htpasswd.users /etc/icinga/htpasswd.users
 ADD files/cgi.cfg /etc/icinga/cgi.cfg
 ADD files/resource.cfg /etc/icinga/resource.cfg
-ADD files/create_database.sh /usr/share/icinga/create_database.sh
+ADD files/init.sh /usr/share/icinga/init.sh
 ADD files/create_database.sql /usr/share/icinga/create_database.sql
 ADD files/import_existing_nconf_into_db.sh /usr/share/icinga/
 ADD files/backupConfs.sh /usr/share/icinga/
 ADD files/import_db_backup.sh /usr/share/icinga/
+
+RUN chmod 640 /etc/icinga/icinga.cfg  && chmod 644 /etc/icinga/htpasswd.cfg && \
+ chown nagios:nagios /etc/icinga/icinga.cfg
 
 # Add Rasperry-Pi logos
 COPY raspberry/ /usr/share/icinga/htdocs/images/logos/raspberry/
@@ -64,7 +69,7 @@ RUN  cd /var/www/html/ && mkdir nconf && \
  ls -al /var/www/html/nconf/ && \
 chown www-data:www-data /var/www/html/nconf/config /var/www/html/nconf/temp /var/www/html/nconf/output \
  /var/www/html/nconf/static_cfg && chmod 644 /var/www/html/nconf/config/* && \
- chmod 744 /usr/share/icinga/create_database.sh /usr/share/icinga/import_db_backup.sh \
+ chmod 744 /usr/share/icinga/init.sh /usr/share/icinga/import_db_backup.sh \
  /usr/share/icinga/import_existing_nconf_into_db.sh /usr/share/icinga/backupConfs.sh && \
  chmod a+x /var/www/html/nconf/bin/*
 

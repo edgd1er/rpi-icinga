@@ -35,9 +35,10 @@ EOF
 #needed when /var/cache is mounted
 setRights(){
     echo setting rights for cache/icinga directory
+    mkdir -p /var/cache/icinga
     chown nagios:nagios /var/cache/icinga/
-    chmod 755 /var/cache/icinga
-    chmod 744 /var/cache/icinga/*
+    chmod 755 /var/cache/icinga/
+    chmod 754 /var/cache/icinga/.
 
 }
 
@@ -104,7 +105,6 @@ fi
 
 generateMysql
 #needed when /var/cache is mounted
-setRights
 setMailConfig
 sed -i.bak "s/LogLevel .*$/LogLevel debug/" /etc/apache2/apache2.conf
 
@@ -113,4 +113,5 @@ echo -e "Starting apache"
 supervisorctl start apache2
 echo -e "Starting icinga"
 supervisorctl start icinga
+setRights
 supervisorctl start log
