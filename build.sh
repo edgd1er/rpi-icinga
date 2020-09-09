@@ -4,14 +4,16 @@ CACHE=""
 #CACHE=" --no-cache"
 aptcacher=$(ip route get 1 | awk '{print $7}')
 WHERE="--load"
+TAG=edgd1er/rpi-icinga-nconf:latest
 PTF=linux/arm/v7
 
-usage() { echo "Usage: $0 [-c ] no build cache [ -w <load|push>] load into docker images, or push to registry ]" 1>&2; exit 1; }
+usage() { echo -e "Usage: $0\n\t[-c] no build cache\n\t[ -w <load|push>]\n\þload into docker images, or push to registry   ]" 1>&2; exit 1; }
 
 while getopts ":c:w:" option; do
     case "${option}" in
         c)
             CACHE=" --no-cache"
+            aptcacher=""
             ;;
         w)
             WHERE="--"${OPTARG}
@@ -25,10 +27,12 @@ done
 shift $((OPTIND-1))
 
 ##add amd if running on amd
-[[ $(uname -m) =~ "x86_64" ]] && PTF+=",linux/amd64"
+[[ $(uname -m) =~ x86_64 ]] && PTF+=",linux/amd64"
+
+PTF="linux/amd64"
 # load tag is not compatible with multi ptf.
-docker buildx build --platform ${PTF} --build-arg aptcacher=${aptcacher} -f Dockerfile.all -t edgd1er/rpi-icinga:latest .
-docker buildx build ${WHERE} -f Dockerfile.all --build-arg aptcacher=${aptcacher} -t edgd1er/rpi-icinga:latest .
+docker buildx build ${WHERE} --progress text --platform ${PTF} --build-arg aptcacher=${aptcacher} -f Dockerfile.all -t ${TAG} .
+docker buildx build ${WHERE} --progress text --build-arg aptcacher=${aptcacher} -f Dockerfile.all -t ${TAG} .
 ret=$?
 [[ ${ret} != "0" ]] && echo "\n error while building image" && exit 1
 
