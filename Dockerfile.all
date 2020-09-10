@@ -39,7 +39,7 @@ ADD files/import_existing_nconf_into_db.sh /usr/share/icinga/
 ADD files/backupConfs.sh /usr/share/icinga/
 ADD files/import_db_backup.sh /usr/share/icinga/
 
-RUN chmod 640 /etc/icinga/icinga.cfg  && chmod 644 /etc/icinga/htpasswd.cfg && \
+RUN chmod 640 /etc/icinga/icinga.cfg && chmod 644 /etc/icinga/htpasswd.users && \
  chown nagios:nagios /etc/icinga/icinga.cfg
 
 # Add Rasperry-Pi logos
@@ -66,7 +66,6 @@ RUN  cd /var/www/html/ && mkdir nconf && \
  find /var/www/html/nconf -type d -exec chmod 755 {} \; && \
  find /var/www/html/nconf -type f -exec chmod 644 {} \; && \
  chown www-data:www-data /etc/icinga/Default_collector /etc/icinga/global && \
- ls -al /var/www/html/nconf/ && \
 chown www-data:www-data /var/www/html/nconf/config /var/www/html/nconf/temp /var/www/html/nconf/output \
  /var/www/html/nconf/static_cfg && chmod 644 /var/www/html/nconf/config/* && \
  chmod 744 /usr/share/icinga/init.sh /usr/share/icinga/import_db_backup.sh \
