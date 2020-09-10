@@ -5,16 +5,15 @@
 
 ISMYSQL=0
 
-createDatabase(){
-    echo creating database tables
-    mysql -u$MYSQL_USER -p$MYSQL_PASSWORD -h$MYSQL_HOST -D$MYSQL_DATABASE  < /usr/share/icinga/create_database.sql
+createDatabase() {
+  echo creating database tables
+  mysql -u$MYSQL_USER -p$MYSQL_PASSWORD -h$MYSQL_HOST -D$MYSQL_DATABASE </usr/share/icinga/create_database.sql
 }
 
-
 #generate mysql.php files with env values ( needed, because perl script get conf from php files, as i understood )
-generateMysql(){
-    echo settings credentials to acccess nconf database
-cat > /var/www/html/nconf/config/mysql.php <<EOF
+generateMysql() {
+  echo settings credentials to acccess nconf database
+  cat >/var/www/html/nconf/config/mysql.php <<EOF
 <?php
 ##
 ## MySQL config
@@ -33,29 +32,28 @@ EOF
 }
 
 #needed when /var/cache is mounted in memory
-setRights(){
-    echo setting rights for cache/icinga directory
-    mkdir -p /var/cache/icinga
-    chown nagios:nagios /var/cache/icinga/
-    chmod 755 /var/cache/icinga/.
-    chmod 754 /var/cache/icinga/*
-
+setRights() {
+  echo "setting rights for cache/icinga directory"
+  [[ ! -d /var/cache/icinga/ ]] && mkdir -p /var/cache/icinga/
+  chown nagios:nagios /var/cache/icinga/
+  chmod 755 /var/cache/icinga/.
+  find /var/cache/icinga -type f -exec chmod 640 {} \;
 }
 
 waitForMysql() {
   n=0
-  while (true and ${n} -lt 30 ); do
+  while (true and ${n} -lt 30); do
     /usr/bin/mysql -h ${MYSQL_HOST} -u${MYSQL_USER} -p${MYSQL_PASSWORD} -D ${MYSQL_DATABASE} -P${MYSQL_HOST_PORT} -e 'show databases;'
     ret=$?
     [[ 0 == ${ret} ]] && echo -e "\n OK, DB is up and running \n" && ISMYSQL=1 && break
     echo -e "\n Error, server ${MYSQL_HOST}:${MYSQL_HOST_PORT} is not up or db ${MYSQL_DATABASE} is not accessible with credentials ${MYSQL_USER} / ${MYSQL_PASSWORD}"
     sleep 5
-    n++;
+    n++
   done
 }
 
-setMailConfig(){
-cat > /etc/aliases <<EOF
+setMailConfig() {
+  cat >/etc/aliases <<EOF
 # See man 5 aliases for format
 # postmaster: root
 postmaster: ${SMTP_FROM:-user@domain.tld}
@@ -63,7 +61,7 @@ root: ${SMTP_FROM:-user@domain.tld}
 default: ${SMTP_FROM:-user@domain.tld}
 EOF
 
-  cat > /etc/msmtprc <<EOF
+  cat >/etc/msmtprc <<EOF
 defaults
 auth           on
 tls            on
@@ -99,15 +97,14 @@ res=$(mysql -h ${MYSQL_HOST} -u${MYSQL_USER} -p${MYSQL_PASSWORD} -D ${MYSQL_DATA
 ret=$?
 
 if [ $ret -ne 0 -o $(echo $res | wc -w) -lt 7 ]; then
-    echo -e "\n/!\Schema is not complete/!\ "
-    createDatabase
+  echo -e "\n/!\Schema is not complete/!\ "
+  createDatabase
 fi
 
 generateMysql
 #needed when /var/cache is mounted
 setMailConfig
 sed -i.bak "s/LogLevel .*$/LogLevel debug/" /etc/apache2/apache2.conf
-
 
 setRights
 echo -e "Starting apache"
