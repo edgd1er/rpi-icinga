@@ -48,7 +48,7 @@ waitForMysql() {
     [[ 0 == ${ret} ]] && echo -e "\n OK, DB is up and running \n" && ISMYSQL=1 && break
     echo -e "\n Error, server ${MYSQL_HOST}:${MYSQL_HOST_PORT} is not up or db ${MYSQL_DATABASE} is not accessible with credentials ${MYSQL_USER} / ${MYSQL_PASSWORD}"
     sleep 5
-    n++
+    n+=1
   done
 }
 
@@ -88,6 +88,8 @@ EOF
 }
 
 ## Main
+MYSQL_HOST=${MYSQL_HOST:-localhost}
+MYSQL_HOST_PORT=${MYSQL_HOST_PORT:-3306}
 # wait for mysql to be ready.
 waitForMysql
 
