@@ -9,11 +9,13 @@ services:
         aptcache:
     restart: unless-stopped
     ports:
-      - "8008:80"
-    #volumes:
+      - "8009:443"
+    volumes:
+      - ./archives/:/var/archives/
     #  - ./etc/:/etc/icinga
     environment:
       TZ: "Europe/Paris"
+      REMOVE_OLDER_THAN: "120"
     env_file:
       - envMysql.icinga
       - envMsmtp
