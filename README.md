@@ -29,6 +29,7 @@ Both are EOL and icinga 1.x is a read only repository. (no updates to expect ; )
 ```
  docker run --rm \
   -p 80:80 \
+  -p 443:443
   -v $(pwd)/etc:/etc/icinga \
   -v cache:/var/cache/icinga \
   -v $(pwd)/log:/var/log/icinga \
@@ -56,6 +57,7 @@ services:
      restart: unless-stopped
      ports:
         - "8008:80"
+        - "8009:443"
      volumes:
       #- cache:/var/cache/icinga
       #- :/var/log/icinga
@@ -118,8 +120,9 @@ This compose-file used as example set hereunder volumes in ram, that are lost wh
 Icinga does not set any default password for the admin user. Run the following command to define a password for the admin user:
 
 ```
-# htpasswd -c etc/htpasswd.users icingaadmin
+# htpasswd -c /etc/htpasswd.users icingaadmin
 ```
+or mount a local file.
 
 ### create database.
 
@@ -129,7 +132,7 @@ Nconf needs a database to operate. database credentials (login, pwd, db name) ar
 
 ### URLS
 
-icinga: ```http://ip:port/icinga/```
+icinga: ```https://ip:port/icinga/```
 
 nconf: ```https://ip:port/nconf/```
 
