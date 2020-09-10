@@ -26,7 +26,7 @@ RUN apt-get update && apt-get upgrade -y && \
  sed -i "s/post_max_size = 8M/post_max_size = $MAX_UPLOAD/" /etc/php/${PHPVER}/apache2/php.ini && \
  sed -i "s#;sendmail_path =#sendmail_path =\"/usr/bin/msmtp -t -C /etc/msmtprc\"#" /etc/php/${PHPVER}/apache2/php.ini && \
  sed -i '/DocumentRoot.*/a \ \tRewriteEngine on\n\tRewriteRule   "^/$" "/icinga/" [R]' /etc/apache2/sites-available/000-default.conf && \
- sed -i '/DocumentRoot.*/a \ \tRewriteEngine on\n\tRewriteRule   "^/$" "/icinga/" [R]' /etc/apache2/sites-available/default-ssl .conf && \
+ sed -i '/DocumentRoot.*/a \ \tRewriteEngine on\n\tRewriteRule   "^/$" "/icinga/" [R]' /etc/apache2/sites-available/default-ssl.conf && \
  a2enmod php${PHPVER} && a2enmod rewrite && a2enmod ssl && a2ensite default-ssl
 
 ADD files/icinga.cfg /etc/icinga/icinga.cfg
