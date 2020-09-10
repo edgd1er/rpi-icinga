@@ -1,6 +1,6 @@
 # variables available inside the container at runtime
 #Allow root access from all hosts within docker network
-MYSQL_HOST=mysql
+MYSQL_HOST=db
 MYSQL_DATABASE=nconfdb
 MYSQL_USER=nconf_user
 MYSQL_PASSWORD=changeIt
