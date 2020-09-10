@@ -114,9 +114,10 @@ VOLUME ["/etc/icinga", "/var/cache/icinga", "/var/log/icinga"]
 
 # Expose ports
 EXPOSE 80
+EXPOSE 443
 
-HEALTHCHECK --interval=1m30s --timeout=10s --retries=3 --start-period=40s \
- CMD curl -s -f -k "http://localhost/cgi-bin/icinga/tac.cgi"  | grep "<title>Tactical Monitoring Overview</title>" || exit 1
+#HEALTHCHECK --interval=1m30s --timeout=10s --retries=3 --start-period=40s \
+# CMD curl -s -f -k "http://icingaadmin:password@localhost/icinga/index.html"  | grep "<title>Tactical Monitoring Overview</title>" || exit 1
 
 # Start services via Supervisor
 ENTRYPOINT ["/usr/bin/supervisord"]
