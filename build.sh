@@ -2,7 +2,7 @@
 #
 CACHE=""
 #CACHE=" --no-cache"
-aptcacher=$(ip route get 1 | awk '{print $7}')
+aptcacher=$(ip route get 1 | awk '{print $7}' | sed '/^$/d')
 WHERE="--load"
 TAG=edgd1er/rpi-icinga-nconf:latest
 PTF=linux/arm/v7
