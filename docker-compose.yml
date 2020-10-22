@@ -12,13 +12,12 @@ services:
       - "8009:443"
     volumes:
       - ./archives/:/var/archives/
-    #  - ./etc/:/etc/icinga
     environment:
       TZ: "Europe/Paris"
       REMOVE_OLDER_THAN: "120"
     env_file:
       - envMysql.icinga
-      - envMsmtp
+      - envMsmtp.mine
     #networks:
     # - pihole_nginx-net
     tmpfs:

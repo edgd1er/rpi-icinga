@@ -30,7 +30,6 @@ Both are EOL and icinga 1.x is a read only repository. (no updates to expect ; )
  docker run --rm \
   -p 80:80 \
   -p 443:443
-  -v $(pwd)/etc:/etc/icinga \
   -v cache:/var/cache/icinga \
   -v $(pwd)/log:/var/log/icinga \
   -e MYSQL_HOST=mysqlServerHostname
@@ -58,10 +57,6 @@ services:
      ports:
         - "8008:80"
         - "8009:443"
-     volumes:
-      #- cache:/var/cache/icinga
-      #- :/var/log/icinga
-      - ${pwd}/etc/:/etc/icinga
      env_file:
        - envMysql
        - envMsmtp
@@ -101,7 +96,6 @@ SMTP_PWD="sender_password"
 This image exposes the following volumes:
 
 ```
-/etc/icinga                   Icinga configuration files
 /var/cache/icinga             Icinga state retention and cache files
 /var/log/icinga               Icinga log files
 ```

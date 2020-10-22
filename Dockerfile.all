@@ -21,7 +21,7 @@ RUN if [ -n ${aptcacher} ]; then echo "Acquire::http::Proxy \"http://${aptcacher
 #install icinga
 RUN apt-get update && apt-get upgrade -y && \
  apt-get install -qy vim sed wget apache2 mariadb-client icinga icinga-doc nagios-nrpe-plugin msmtp msmtp-mta sudo supervisor\
- php${PHPVER} php${PHPVER}-mysql libapache2-mod-php${PHPVER} && rm -rf /var/lib/apt/lists/* && ls -al /etc/php* && \
+ php${PHPVER} php${PHPVER}-mysql libapache2-mod-php${PHPVER} cron && rm -rf /var/lib/apt/lists/* && ls -al /etc/php* && \
  sed -i "s/upload_max_filesize = 2M/upload_max_filesize = $MAX_UPLOAD/" /etc/php/${PHPVER}/apache2/php.ini && \
  sed -i "s/post_max_size = 8M/post_max_size = $MAX_UPLOAD/" /etc/php/${PHPVER}/apache2/php.ini && \
  sed -i "s#;sendmail_path =#sendmail_path =\"/usr/bin/msmtp -t -C /etc/msmtprc\"#" /etc/php/${PHPVER}/apache2/php.ini && \
@@ -38,9 +38,10 @@ ADD files/init.sh /usr/share/icinga/init.sh
 ADD files/create_database.sql /usr/share/icinga/create_database.sql
 ADD files/import_existing_nconf_into_db.sh /usr/share/icinga/
 ADD files/backupConfs.sh /usr/share/icinga/
-ADD files/import_db_backup.sh /usr/share/icinga/
+ADD files/import_backup.sh /usr/share/icinga/
+ADD files/crontab.backup /etc/cron.d/icinga_backup
 
-RUN chmod 640 /etc/icinga/icinga.cfg && chmod 644 /etc/icinga/htpasswd.users && \
+RUN chmod 640 /etc/icinga/icinga.cfg && chmod 644 /etc/icinga/htpasswd.users /etc/cron.d/icinga_backup && \
  chown nagios:nagios /etc/icinga/icinga.cfg
 
 # Add Rasperry-Pi logos
@@ -69,7 +70,7 @@ RUN  cd /var/www/html/ && mkdir nconf && \
  chown www-data:www-data /etc/icinga/Default_collector /etc/icinga/global && \
 chown www-data:www-data /var/www/html/nconf/config /var/www/html/nconf/temp /var/www/html/nconf/output \
  /var/www/html/nconf/static_cfg && chmod 644 /var/www/html/nconf/config/* && \
- chmod 744 /usr/share/icinga/init.sh /usr/share/icinga/import_db_backup.sh \
+ chmod 744 /usr/share/icinga/init.sh /usr/share/icinga/import_backup.sh \
  /usr/share/icinga/import_existing_nconf_into_db.sh /usr/share/icinga/backupConfs.sh && \
  chmod a+x /var/www/html/nconf/bin/*
 
@@ -110,7 +111,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
 RUN if [ -f /etc/apt/apt.conf.d/01proxy ]; then rm /etc/apt/apt.conf.d/01proxy; fi
 
 # Expose volumes
-VOLUME ["/etc/icinga", "/var/cache/icinga", "/var/log/icinga"]
+VOLUME ["/var/cache/icinga", "/var/log/icinga"]
 
 # Expose ports
 EXPOSE 80
