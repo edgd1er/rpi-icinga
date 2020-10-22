@@ -23,12 +23,12 @@ backupBdd() {
   done
   # boucle sur les bases pour compresser les fichiers
   for DB_NAME in $DATABASES; do
-    gzip -9 /var/archives/$OUTDIR/$DB_NAME.sql
+    gzip -f9 /var/archives/$OUTDIR/$DB_NAME.sql
   done
 }
 
 backupIcingaFiles() {
-  tar -zcf /var/archives/$OUTDIR/icinga.tar.gz -C /etc/icinga Default_collector global msmtprc $(ls /etc/icinga/*.cfg)
+  tar -zcf /var/archives/$OUTDIR/icinga.tar.gz -C /etc/icinga msmtprc Default_collector global $(cd /etc/icinga/; ls *.cfg )
 }
 #Main
 backupBdd
@@ -36,4 +36,3 @@ backupBdd
 backupIcingaFiles
 #clean old archives
 find /var/archives/ -type d -mtime +${REMOVE_OLDER_THAN} -exec ls -al {} \; -delete
-
