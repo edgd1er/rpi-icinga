@@ -14,44 +14,34 @@ ENV MYSQL_PASSWORD=nconf
 ENV MYSQL_DATABASE=nconf
 ENV PHPVER=7.3
 
+ADD files/init.sh /usr/share/icinga/init.sh
+ADD files/htpasswd.users /etc/icinga/htpasswd.users
+ADD files/import_existing_nconf_into_db.sh /usr/share/icinga/
+ADD files/create_database.sql /usr/share/icinga/create_database.sql
+ADD files/backupConfs.sh /usr/share/icinga/
+ADD files/import_backup.sh /usr/share/icinga/
+ADD files/crontab.backup /etc/cron.d/icinga_backup
+# Add Rasperry-Pi logos
+COPY raspberry/ /usr/share/icinga/htdocs/images/logos/raspberry/
+# Add Supervisor configuration
+COPY files/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
 #add apt-cacher setting if present:
 RUN if [ -n ${aptcacher} ]; then echo "Acquire::http::Proxy \"http://${aptcacher}:3142\";" >/etc/apt/apt.conf.d/01proxy && \
-    echo "Acquire::https::Proxy \"http://${aptcacher}:3142\";" >>/etc/apt/apt.conf.d/01proxy ; fi
-
+  echo "Acquire::https::Proxy \"http://${aptcacher}:3142\";" >>/etc/apt/apt.conf.d/01proxy ; fi && \
 #install icinga
-RUN apt-get update && apt-get upgrade -y && \
- apt-get install -qy vim sed wget apache2 mariadb-client icinga icinga-doc nagios-nrpe-plugin msmtp msmtp-mta sudo supervisor\
+ apt-get update && apt-get dist-upgrade -y && export DEBIAN_FRONTEND=noninteractive && \
+ apt-get -o Dpkg::Options::="--force-confold" install -qy \
+ vim sed wget apache2 mariadb-client icinga icinga-doc nagios-nrpe-plugin msmtp msmtp-mta sudo supervisor\
  php${PHPVER} php${PHPVER}-mysql libapache2-mod-php${PHPVER} cron && rm -rf /var/lib/apt/lists/* && ls -al /etc/php* && \
  sed -i "s/upload_max_filesize = 2M/upload_max_filesize = $MAX_UPLOAD/" /etc/php/${PHPVER}/apache2/php.ini && \
  sed -i "s/post_max_size = 8M/post_max_size = $MAX_UPLOAD/" /etc/php/${PHPVER}/apache2/php.ini && \
  sed -i "s#;sendmail_path =#sendmail_path =\"/usr/bin/msmtp -t -C /etc/msmtprc\"#" /etc/php/${PHPVER}/apache2/php.ini && \
  sed -i '/DocumentRoot.*/a \ \tRewriteEngine on\n\tRewriteRule   "^/$" "/icinga/" [R]' /etc/apache2/sites-available/000-default.conf && \
  sed -i '/DocumentRoot.*/a \ \tRewriteEngine on\n\tRewriteRule   "^/$" "/icinga/" [R]' /etc/apache2/sites-available/default-ssl.conf && \
- a2enmod php${PHPVER} && a2enmod rewrite && a2enmod ssl && a2ensite default-ssl
-
-ADD files/icinga.cfg /etc/icinga/icinga.cfg
-ADD files/apache2.conf /etc/apache2/conf-enabled/icinga.conf
-ADD files/htpasswd.users /etc/icinga/htpasswd.users
-ADD files/cgi.cfg /etc/icinga/cgi.cfg
-ADD files/resource.cfg /etc/icinga/resource.cfg
-ADD files/init.sh /usr/share/icinga/init.sh
-ADD files/create_database.sql /usr/share/icinga/create_database.sql
-ADD files/import_existing_nconf_into_db.sh /usr/share/icinga/
-ADD files/backupConfs.sh /usr/share/icinga/
-ADD files/import_backup.sh /usr/share/icinga/
-ADD files/crontab.backup /etc/cron.d/icinga_backup
-
-RUN chmod 640 /etc/icinga/icinga.cfg && chmod 644 /etc/icinga/htpasswd.users /etc/cron.d/icinga_backup && \
- chown nagios:nagios /etc/icinga/icinga.cfg
-
-# Add Rasperry-Pi logos
-COPY raspberry/ /usr/share/icinga/htdocs/images/logos/raspberry/
-
-# Add Supervisor configuration
-COPY files/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
+ a2enmod php${PHPVER} && a2enmod rewrite && a2enmod ssl && a2ensite default-ssl && \
 #Add nconf (https://github.com/Bonsaif/new-nconf/releases)
-RUN  cd /var/www/html/ && mkdir nconf && \
+ cd /var/www/html/ && mkdir nconf && \
  wget -q $NCONFDL -O nconf.tar.gz && \
  tar -zxf nconf.tar.gz -C nconf --strip-components=1 && rm nconf.tar.gz && \
  cd nconf && cp config.orig/* config/ && \
@@ -72,17 +62,13 @@ chown www-data:www-data /var/www/html/nconf/config /var/www/html/nconf/temp /var
  /var/www/html/nconf/static_cfg && chmod 644 /var/www/html/nconf/config/* && \
  chmod 744 /usr/share/icinga/init.sh /usr/share/icinga/import_backup.sh \
  /usr/share/icinga/import_existing_nconf_into_db.sh /usr/share/icinga/backupConfs.sh && \
- chmod a+x /var/www/html/nconf/bin/*
-
-#add local deployment
-ADD files/deployment.ini /var/www/html/nconf/config/deployment.ini
-
+ chmod a+x /var/www/html/nconf/bin/* && \
+ chmod 640 /etc/icinga/icinga.cfg && chmod 644 /etc/icinga/htpasswd.users /etc/cron.d/icinga_backup && \
+ chown nagios:nagios /etc/icinga/icinga.cfg && \
 #Allow www-data to reload nagios
-RUN echo "www-data ALL=NOPASSWD:/usr/bin/supervisorctl restart icinga" | tee -a /etc/sudoers
-
+ echo "www-data ALL=NOPASSWD:/usr/bin/supervisorctl restart icinga" | tee -a /etc/sudoers && \
 #copy nagios to allow nconf to validate conf
-
-RUN cp /usr/sbin/icinga /var/www/html/nconf/bin/icinga && \
+ cp /usr/sbin/icinga /var/www/html/nconf/bin/icinga && \
  usermod -aG nagios www-data && \
  chown -R www-data:www-data /var/www/html/nconf/bin/icinga && \
  chown -R nagios:nagios /var/cache/icinga /var/log/icinga && \
@@ -90,10 +76,11 @@ RUN cp /usr/sbin/icinga /var/www/html/nconf/bin/icinga && \
  touch /var/log/icinga/icinga.log && \
  chmod 644 /var/log/icinga/icinga.log && \
  # Fix external commands && \
- chmod 2770 /var/lib/icinga/rw
-
+ chmod 2770 /var/lib/icinga/rw && \
+ ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+ if [ -f /etc/apt/apt.conf.d/01proxy ]; then rm /etc/apt/apt.conf.d/01proxy; fi && \
 # Secure SSMTP configuration
-RUN if [ ! -f msmtprc ]; then touch /etc/msmtprc; fi ; \
+ if [ ! -f msmtprc ]; then touch /etc/msmtprc; fi ; \
   mv /etc/msmtprc /etc/icinga/  && \
   ln -snf /etc/icinga/msmtprc /etc/msmtprc && \
   ln -snf /usr/bin/msmtp /etc/alternatives/mail && \
@@ -103,12 +90,16 @@ RUN if [ ! -f msmtprc ]; then touch /etc/msmtprc; fi ; \
   chmod 640 /etc/icinga/msmtprc && \
   chmod g+s /usr/bin/msmtp
 
+#overwrite icinga default configuration
+ADD files/icinga.cfg /etc/icinga/icinga.cfg
+ADD files/apache2.conf /etc/apache2/conf-enabled/icinga.conf
+ADD files/cgi.cfg /etc/icinga/cgi.cfg
+ADD files/resource.cfg /etc/icinga/resource.cfg
+#add local deployment
+ADD files/deployment.ini /var/www/html/nconf/config/deployment.ini
+
 # Timezone configuration
 ENV TZ=${TZ}
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
-&& echo $TZ > /etc/timezone
-
-RUN if [ -f /etc/apt/apt.conf.d/01proxy ]; then rm /etc/apt/apt.conf.d/01proxy; fi
 
 # Expose volumes
 VOLUME ["/var/cache/icinga", "/var/log/icinga"]
@@ -117,10 +108,9 @@ VOLUME ["/var/cache/icinga", "/var/log/icinga"]
 EXPOSE 80
 EXPOSE 443
 
-#HEALTHCHECK --interval=1m30s --timeout=10s --retries=3 --start-period=40s \
-# CMD curl -s -f -k "http://icingaadmin:password@localhost/icinga/index.html"  | grep "<title>Tactical Monitoring Overview</title>" || exit 1
+HEALTHCHECK --interval=1m30s --timeout=10s --retries=3 --start-period=40s \
+CMD curl -s -f -k "https://localhost/icinga/index.html"  | grep "<title>Tactical Monitoring Overview</title>" || exit 1
 
 # Start services via Supervisor
 ENTRYPOINT ["/usr/bin/supervisord"]
 CMD ["-c","/etc/supervisor/conf.d/supervisord.conf"]
-
