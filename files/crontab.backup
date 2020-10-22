@@ -1,0 +1,2 @@
+# keep a supervisord task as it could be something else than a script
+* * * * * supervisorctl start backupBdd
