@@ -27,10 +27,22 @@ services:
       - db
 
   db:
-    image: mariadb/server
+    image: linuxserver/mariadb:latest
     ports:
       - 3326:3306
     restart:
       unless-stopped
     env_file:
       - envMysql
+    environment:
+      - TZ=Europe/Paris
+    volumes:
+      - icinga_database:/config
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+
+volumes:
+  icinga_database:
