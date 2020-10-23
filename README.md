@@ -19,10 +19,11 @@ Updated base image with latest version except for icinga and nconf (EOL)
 * apache 2.4
 * [icinga 1.14.2](https://github.com/Icinga/icinga-core) / [Nconf 1.4](https://github.com/Bonsaif/new-nconf/releases)
 Both are EOL and icinga 1.x is a read only repository. (no updates to expect ; ) 
-* Automatic backup once a week of icinga and nconf db: ``/usr/share/icinga/import_db_backup.sh YYYYMMDD``
-* Import icinga, nconf df from backup: ``/usr/share/icinga/backupConfs.sh`` 
+* Automatic backup once a week of icinga and nconf db: ``/usr/share/icinga/backupConfs.sh`` 
+* Import icinga, nconf df from backup: ``/usr/share/icinga/import_backup.sh YYYYMMDD`` 
 * Import into nconf database from existing icinga folder with: ``/usr/share/icinga/import_existing_nconf_into_db.sh``
-
+* define user and password access.
+* every week clean icinga archives logs over MAXDAYS. rotation is on a daily basis.
 
 ## Usage
 
@@ -32,6 +33,7 @@ Both are EOL and icinga 1.x is a read only repository. (no updates to expect ; )
   -p 443:443
   -v cache:/var/cache/icinga \
   -v $(pwd)/log:/var/log/icinga \
+  -e MAXDAYS=320 \
   -e MYSQL_HOST=mysqlServerHostname
   -e MYSQL_USER=user
   -e MYSQL_PASSWORD=password
@@ -57,6 +59,8 @@ services:
      ports:
         - "8008:80"
         - "8009:443"
+     environment:
+     - MAXDAYS: 320
      env_file:
        - envMysql
        - envMsmtp
@@ -111,12 +115,10 @@ This compose-file used as example set hereunder volumes in ram, that are lost wh
 ## Installation
 
 ### htpassd
-Icinga does not set any default password for the admin user. Run the following command to define a password for the admin user:
 
-```
-# htpasswd -c /etc/htpasswd.users icingaadmin
-```
-or mount a local file.
+At each restart, password is defined using HTUSER and HTPASS variables values.
+
+or mount a local file as read only.
 
 ### create database.
 

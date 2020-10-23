@@ -4,6 +4,8 @@
 #
 
 ISMYSQL=0
+HTUSER=${HTUSER:-icingaadmin}
+HTPASS=${HTUSER:-icingaadmin}
 
 createDatabase() {
   echo creating database tables
@@ -87,6 +89,11 @@ account default : icinga
 EOF
 }
 
+setHtPasswd(){
+  HTFILE=/etc/icinga/htpasswd.users
+  [[ -w ${HTFILE} ]] && htpasswd -cb ${HTFILE} ${HTUSER} ${HTPASS} || echo
+}
+
 ## Main
 MYSQL_HOST=${MYSQL_HOST:-localhost}
 MYSQL_HOST_PORT=${MYSQL_HOST_PORT:-3306}
@@ -109,6 +116,9 @@ setMailConfig
 sed -i.bak "s/LogLevel .*$/LogLevel debug/" /etc/apache2/apache2.conf
 
 setRights
+#define password at each restart
+setHtPasswd
+
 echo -e "Starting apache"
 supervisorctl start apache2
 echo -e "Starting icinga"

@@ -21,6 +21,7 @@ ADD files/create_database.sql /usr/share/icinga/create_database.sql
 ADD files/backupConfs.sh /usr/share/icinga/
 ADD files/import_backup.sh /usr/share/icinga/
 ADD files/crontab.backup /etc/cron.d/icinga_backup
+ADD files/here.html /var/www/html/
 # Add Rasperry-Pi logos
 COPY raspberry/ /usr/share/icinga/htdocs/images/logos/raspberry/
 # Add Supervisor configuration
@@ -31,7 +32,7 @@ RUN if [ -n ${aptcacher} ]; then echo "Acquire::http::Proxy \"http://${aptcacher
   echo "Acquire::https::Proxy \"http://${aptcacher}:3142\";" >>/etc/apt/apt.conf.d/01proxy ; fi && \
 #install icinga
  apt-get update && apt-get dist-upgrade -y && export DEBIAN_FRONTEND=noninteractive && \
- apt-get -o Dpkg::Options::="--force-confold" install -qy \
+ apt-get -o Dpkg::Options::="--force-confold" install -qy curl \
  vim sed wget apache2 mariadb-client icinga icinga-doc nagios-nrpe-plugin msmtp msmtp-mta sudo supervisor\
  php${PHPVER} php${PHPVER}-mysql libapache2-mod-php${PHPVER} cron && rm -rf /var/lib/apt/lists/* && ls -al /etc/php* && \
  sed -i "s/upload_max_filesize = 2M/upload_max_filesize = $MAX_UPLOAD/" /etc/php/${PHPVER}/apache2/php.ini && \
@@ -39,7 +40,7 @@ RUN if [ -n ${aptcacher} ]; then echo "Acquire::http::Proxy \"http://${aptcacher
  sed -i "s#;sendmail_path =#sendmail_path =\"/usr/bin/msmtp -t -C /etc/msmtprc\"#" /etc/php/${PHPVER}/apache2/php.ini && \
  sed -i '/DocumentRoot.*/a \ \tRewriteEngine on\n\tRewriteRule   "^/$" "/icinga/" [R]' /etc/apache2/sites-available/000-default.conf && \
  sed -i '/DocumentRoot.*/a \ \tRewriteEngine on\n\tRewriteRule   "^/$" "/icinga/" [R]' /etc/apache2/sites-available/default-ssl.conf && \
- a2enmod php${PHPVER} && a2enmod rewrite && a2enmod ssl && a2ensite default-ssl && \
+ a2enmod php${PHPVER} && a2enmod rewrite && a2enmod ssl && a2ensite default-ssl && rm -f /var/www/html/index.html && \
 #Add nconf (https://github.com/Bonsaif/new-nconf/releases)
  cd /var/www/html/ && mkdir nconf && \
  wget -q $NCONFDL -O nconf.tar.gz && \
@@ -109,7 +110,7 @@ EXPOSE 80
 EXPOSE 443
 
 HEALTHCHECK --interval=1m30s --timeout=10s --retries=3 --start-period=40s \
-CMD curl -s -f -k "https://localhost/icinga/index.html"  | grep "<title>Tactical Monitoring Overview</title>" || exit 1
+CMD curl -s -f -k "https://localhost/here.html"  | grep -c "OK" || exit 1
 
 # Start services via Supervisor
 ENTRYPOINT ["/usr/bin/supervisord"]

@@ -1,2 +1,6 @@
+# mm hh jj MMM JJJ
 # keep a supervisord task as it could be something else than a script
-* * * * * supervisorctl start backupBdd
+05 12 * * 6 supervisorctl start backupBdd
+
+# clean over MAXDAYS archives
+0 11 * * * find /var/log/ -type f -mtime +${MAXDAYS:-120} -delete
