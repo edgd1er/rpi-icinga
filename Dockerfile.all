@@ -110,7 +110,7 @@ EXPOSE 80
 EXPOSE 443
 
 HEALTHCHECK --interval=1m30s --timeout=10s --retries=3 --start-period=40s \
-CMD curl -s -f -k "https://localhost/here.html"  | grep -c "OK" || exit 1
+CMD curl -s -f -k "https://localhost/here.html"  | grep "OK" || exit 1
 
 # Start services via Supervisor
 ENTRYPOINT ["/usr/bin/supervisord"]
