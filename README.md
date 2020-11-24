@@ -111,6 +111,7 @@ This compose-file used as example set hereunder volumes in ram, that are lost wh
 /var/log/icinga               Icinga log files
 ```
 
+`/etc/icinga/global` and `/etc/icinga/Default_collector/)` may be mounted to keep icinga's configuration between creations.
 
 ## Installation
 
