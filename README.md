@@ -18,12 +18,13 @@ Updated base image with latest version except for icinga and nconf (EOL)
 * based on latest debian:buster-slim (Dockerfile.all)
 * apache 2.4
 * [icinga 1.14.2](https://github.com/Icinga/icinga-core) / [Nconf 1.4](https://github.com/Bonsaif/new-nconf/releases)
-Both are EOL and icinga 1.x is a read only repository. (no updates to expect ; ) 
+Both are EOL and icinga 1.x is a read only repository. (no updates to expect ;) ) 
 * Automatic backup once a week of icinga and nconf db: ``/usr/share/icinga/backupConfs.sh`` 
 * Import icinga, nconf df from backup: ``/usr/share/icinga/import_backup.sh YYYYMMDD`` 
 * Import into nconf database from existing icinga folder with: ``/usr/share/icinga/import_existing_nconf_into_db.sh``
 * define user and password access.
 * every week clean icinga archives logs over MAXDAYS. rotation is on a daily basis.
+* Enable/Disable external commands through env: EXTERNAL_COMMANDS_ENABLE
 
 ## Usage
 
@@ -33,6 +34,7 @@ Both are EOL and icinga 1.x is a read only repository. (no updates to expect ; )
   -p 443:443
   -v cache:/var/cache/icinga \
   -v $(pwd)/log:/var/log/icinga \
+  -e EXTERNAL_COMMANDS_ENABLE=0
   -e MAXDAYS=320 \
   -e MYSQL_HOST=mysqlServerHostname
   -e MYSQL_USER=user

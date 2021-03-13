@@ -94,6 +94,12 @@ setHtPasswd(){
   [[ -w ${HTFILE} ]] && htpasswd -cb ${HTFILE} ${HTUSER} ${HTPASS} || echo
 }
 
+setCheckCommands(){
+  EXTERNAL_COMMANDS_ENABLE=${EXTERNAL_COMMANDS_ENABLE:-0}
+  echo "Writing status ${EXTERNAL_COMMANDS_ENABLE} to icinga conf"
+  sed -i -r "s/^(check_external_commands=)(.)/\1${EXTERNAL_COMMANDS_ENABLE}/" /etc/icinga/icinga.cfg
+}
+
 ## Main
 MYSQL_HOST=${MYSQL_HOST:-localhost}
 MYSQL_HOST_PORT=${MYSQL_HOST_PORT:-3306}
@@ -118,6 +124,8 @@ sed -i.bak "s/LogLevel .*$/LogLevel debug/" /etc/apache2/apache2.conf
 setRights
 #define password at each restart
 setHtPasswd
+#Define external commands status upon ENV var.
+setCheckCommands
 
 echo -e "Starting apache"
 supervisorctl start apache2
