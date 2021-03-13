@@ -1,13 +1,23 @@
 DOCKER=/usr/bin/docker
-DOCKER_IMAGE_NAME=edgd1er/rpi-icinga-nconf:armhf
-DOCKER_BASE_NAME=resin/rpi-raspbian
-DOCKER_BASE_VERSION=stretch
+DOCKER_IMAGE_NAME=edgd1er/rpi-icinga-nconf
+PTF=linux/amd64
+DKRFILE=./Dockerfile.all
+ARCHI=$(dpkg --print-architecture)
+IMAGE=rpi-icinga-nconf
+PROGRESS=AUTO
+WHERE=--load
+CACHE=
+
+aptCacher=
 
 default: build
 
+lint:
+	$(DOCKER) run --rm -i hadolint/hadolint < Dockerfile.all
+
 build:
-	$(DOCKER) pull $(DOCKER_BASE_NAME):$(DOCKER_BASE_VERSION) 
-	$(DOCKER) build --no-cache -t $(DOCKER_IMAGE_NAME) .
+	$(DOCKER) buildx build $(WHERE) --platform $(PTF) -f $(DKRFILE) --build-arg NAME=$(NAME) \
+    $(CACHE) --progress $(PROGRESS) --build-arg aptCacher=$aptCacher -t $(IMAGE) .
 
 push:
 	$(DOCKER) login
