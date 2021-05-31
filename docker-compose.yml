@@ -15,7 +15,7 @@ services:
     environment:
       TZ: "Europe/Paris"
       REMOVE_OLDER_THAN: "120"
-      EXTERNAL_COMMANDS: "1"
+      EXTERNAL_COMMANDS_ENABLE: "1"
     env_file:
       - envMysql.icinga
       - envMsmtp.mine
