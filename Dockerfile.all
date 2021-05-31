@@ -1,6 +1,4 @@
 FROM debian:buster-slim
-MAINTAINER edgd1er@hotmail.com
-
 LABEL maintainer=edgd1er
 
 # Install prerequisites
@@ -14,25 +12,28 @@ ENV MYSQL_PASSWORD=nconf
 ENV MYSQL_DATABASE=nconf
 ENV PHPVER=7.3
 
-ADD files/init.sh /usr/share/icinga/init.sh
-ADD files/htpasswd.users /etc/icinga/htpasswd.users
-ADD files/import_existing_nconf_into_db.sh /usr/share/icinga/
-ADD files/create_database.sql /usr/share/icinga/create_database.sql
-ADD files/backupConfs.sh /usr/share/icinga/
-ADD files/import_backup.sh /usr/share/icinga/
-ADD files/crontab.backup /etc/cron.d/icinga_backup
-ADD files/here.html /var/www/html/
+COPY files/init.sh /usr/share/icinga/init.sh
+COPY files/htpasswd.users /etc/icinga/htpasswd.users
+COPY files/import_existing_nconf_into_db.sh /usr/share/icinga/
+COPY files/create_database.sql /usr/share/icinga/create_database.sql
+COPY files/backupConfs.sh /usr/share/icinga/
+COPY files/import_backup.sh /usr/share/icinga/
+COPY files/crontab.backup /etc/cron.d/icinga_backup
+COPY files/here.html /var/www/html/
 # Add Rasperry-Pi logos
 COPY raspberry/ /usr/share/icinga/htdocs/images/logos/raspberry/
 # Add Supervisor configuration
 COPY files/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 #add apt-cacher setting if present:
+WORKDIR /var/www/html/
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+#hadolint ignore=DL3008,SC2016
 RUN if [ -n ${aptcacher} ]; then echo "Acquire::http::Proxy \"http://${aptcacher}:3142\";" >/etc/apt/apt.conf.d/01proxy && \
   echo "Acquire::https::Proxy \"http://${aptcacher}:3142\";" >>/etc/apt/apt.conf.d/01proxy ; fi && \
 #install icinga
- apt-get update && apt-get dist-upgrade -y && export DEBIAN_FRONTEND=noninteractive && \
- apt-get -o Dpkg::Options::="--force-confold" install -qy curl \
+ apt-get update && apt-get upgrade -y && export DEBIAN_FRONTEND=noninteractive && \
+ apt-get -o Dpkg::Options::="--force-confold" install -qy --no-install-recommends curl \
  vim sed wget apache2 mariadb-client icinga icinga-doc nagios-nrpe-plugin msmtp msmtp-mta sudo supervisor monitoring-plugins-standard \
  php${PHPVER} php${PHPVER}-mysql libapache2-mod-php${PHPVER} cron && rm -rf /var/lib/apt/lists/* && ls -al /etc/php* && \
  sed -i "s/upload_max_filesize = 2M/upload_max_filesize = $MAX_UPLOAD/" /etc/php/${PHPVER}/apache2/php.ini && \
@@ -42,10 +43,9 @@ RUN if [ -n ${aptcacher} ]; then echo "Acquire::http::Proxy \"http://${aptcacher
  sed -i '/DocumentRoot.*/a \ \tRewriteEngine on\n\tRewriteRule   "^/$" "/icinga/" [R]' /etc/apache2/sites-available/default-ssl.conf && \
  a2enmod php${PHPVER} && a2enmod rewrite && a2enmod ssl && a2ensite default-ssl && rm -f /var/www/html/index.html && \
 #Add nconf (https://github.com/Bonsaif/new-nconf/releases)
- cd /var/www/html/ && mkdir nconf && \
- wget -q $NCONFDL -O nconf.tar.gz && \
+ mkdir nconf && wget -q $NCONFDL -O nconf.tar.gz && \
  tar -zxf nconf.tar.gz -C nconf --strip-components=1 && rm nconf.tar.gz && \
- cd nconf && cp config.orig/* config/ && \
+ cp nconf/config.orig/* nconf/config/ && \
  sed -i 's#\$nconfdir#\"/var/www/html/nconf\"#' /var/www/html/nconf/config/nconf.php && \
  sed -i 's#/var/www/nconf#/var/www/html/nconf#' /var/www/html/nconf/config/nconf.php && \
  sed -i 's#/var/www/html/nconf/bin/nagios#/var/www/html/nconf/bin/icinga#' /var/www/html/nconf/config/nconf.php && \
@@ -92,12 +92,12 @@ chown www-data:www-data /var/www/html/nconf/config /var/www/html/nconf/temp /var
   chmod g+s /usr/bin/msmtp
 
 #overwrite icinga default configuration
-ADD files/icinga.cfg /etc/icinga/icinga.cfg
-ADD files/apache2.conf /etc/apache2/conf-enabled/icinga.conf
-ADD files/cgi.cfg /etc/icinga/cgi.cfg
-ADD files/resource.cfg /etc/icinga/resource.cfg
+COPY files/icinga.cfg /etc/icinga/icinga.cfg
+COPY files/apache2.conf /etc/apache2/conf-enabled/icinga.conf
+COPY files/cgi.cfg /etc/icinga/cgi.cfg
+COPY files/resource.cfg /etc/icinga/resource.cfg
 #add local deployment
-ADD files/deployment.ini /var/www/html/nconf/config/deployment.ini
+COPY files/deployment.ini /var/www/html/nconf/config/deployment.ini
 
 # Timezone configuration
 ENV TZ=${TZ}
@@ -109,7 +109,7 @@ VOLUME ["/var/cache/icinga", "/var/log/icinga"]
 EXPOSE 80
 EXPOSE 443
 
-HEALTHCHECK --interval=1m30s --timeout=10s --retries=3 --start-period=40s \
+HEALTHCHECK --interval=90s --timeout=10s --retries=3 --start-period=40s \
 CMD curl -s -f -k "https://localhost/here.html"  | grep "OK" || exit 1
 
 # Start services via Supervisor
