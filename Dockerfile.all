@@ -29,12 +29,13 @@ COPY files/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 WORKDIR /var/www/html/
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 #hadolint ignore=DL3008,SC2016
-RUN if [ -n ${aptcacher} ]; then echo "Acquire::http::Proxy \"http://${aptcacher}:3142\";" >/etc/apt/apt.conf.d/01proxy && \
+RUN if [[ -n ${aptcacher} ]]; then echo "Acquire::http::Proxy \"http://${aptcacher}:3142\";" >/etc/apt/apt.conf.d/01proxy && \
   echo "Acquire::https::Proxy \"http://${aptcacher}:3142\";" >>/etc/apt/apt.conf.d/01proxy ; fi && \
-#install icinga
+ #install icinga
  apt-get update && apt-get upgrade -y && export DEBIAN_FRONTEND=noninteractive && \
- apt-get -o Dpkg::Options::="--force-confold" install -qy --no-install-recommends curl \
+ apt-get -o Dpkg::Options::="--force-confold" install -qy --no-install-recommends curl ssl-cert ca-certificates \
  vim sed wget apache2 mariadb-client icinga icinga-doc nagios-nrpe-plugin msmtp msmtp-mta sudo supervisor monitoring-plugins-standard \
+ nagios-images monitoring-plugins snmp host dnsutils libnet-snmp-perl \
  php${PHPVER} php${PHPVER}-mysql libapache2-mod-php${PHPVER} cron && rm -rf /var/lib/apt/lists/* && ls -al /etc/php* && \
  sed -i "s/upload_max_filesize = 2M/upload_max_filesize = $MAX_UPLOAD/" /etc/php/${PHPVER}/apache2/php.ini && \
  sed -i "s/post_max_size = 8M/post_max_size = $MAX_UPLOAD/" /etc/php/${PHPVER}/apache2/php.ini && \
@@ -42,10 +43,10 @@ RUN if [ -n ${aptcacher} ]; then echo "Acquire::http::Proxy \"http://${aptcacher
  sed -i '/DocumentRoot.*/a \ \tRewriteEngine on\n\tRewriteRule   "^/$" "/icinga/" [R]' /etc/apache2/sites-available/000-default.conf && \
  sed -i '/DocumentRoot.*/a \ \tRewriteEngine on\n\tRewriteRule   "^/$" "/icinga/" [R]' /etc/apache2/sites-available/default-ssl.conf && \
  a2enmod php${PHPVER} && a2enmod rewrite && a2enmod ssl && a2ensite default-ssl && rm -f /var/www/html/index.html && \
-#Add nconf (https://github.com/Bonsaif/new-nconf/releases)
- mkdir nconf && wget -q $NCONFDL -O nconf.tar.gz && \
- tar -zxf nconf.tar.gz -C nconf --strip-components=1 && rm nconf.tar.gz && \
- cp nconf/config.orig/* nconf/config/ && \
+ #Add nconf (https://github.com/Bonsaif/new-nconf/releases)
+ mkdir -p /var/www/html/nconf && wget -q $NCONFDL -O /var/www/html/nconf.tar.gz && \
+ tar -zxf /var/www/html/nconf.tar.gz -C /var/www/html/nconf --strip-components=1 && rm /var/www/html/nconf.tar.gz && \
+ cp /var/www/html/nconf/config.orig/* /var/www/html/nconf/config/ && \
  sed -i 's#\$nconfdir#\"/var/www/html/nconf\"#' /var/www/html/nconf/config/nconf.php && \
  sed -i 's#/var/www/nconf#/var/www/html/nconf#' /var/www/html/nconf/config/nconf.php && \
  sed -i 's#/var/www/html/nconf/bin/nagios#/var/www/html/nconf/bin/icinga#' /var/www/html/nconf/config/nconf.php && \
@@ -59,7 +60,7 @@ RUN if [ -n ${aptcacher} ]; then echo "Acquire::http::Proxy \"http://${aptcacher
  find /var/www/html/nconf -type d -exec chmod 755 {} \; && \
  find /var/www/html/nconf -type f -exec chmod 644 {} \; && \
  chown www-data:www-data /etc/icinga/Default_collector /etc/icinga/global && \
-chown www-data:www-data /var/www/html/nconf/config /var/www/html/nconf/temp /var/www/html/nconf/output \
+ chown www-data:www-data /var/www/html/nconf/config /var/www/html/nconf/temp /var/www/html/nconf/output \
  /var/www/html/nconf/static_cfg && chmod 644 /var/www/html/nconf/config/* && \
  chmod 744 /usr/share/icinga/init.sh /usr/share/icinga/import_backup.sh \
  /usr/share/icinga/import_existing_nconf_into_db.sh /usr/share/icinga/backupConfs.sh && \
@@ -67,7 +68,7 @@ chown www-data:www-data /var/www/html/nconf/config /var/www/html/nconf/temp /var
  chmod 640 /etc/icinga/icinga.cfg && chmod 644 /etc/icinga/htpasswd.users /etc/cron.d/icinga_backup && \
  chown nagios:nagios /etc/icinga/icinga.cfg && \
 #Allow www-data to reload nagios
- echo "www-data ALL=NOPASSWD:/usr/bin/supervisorctl restart icinga" | tee -a /etc/sudoers && \
+ echo "www-data ALL=NOPASSWD:/usr/bin/supervisorctl restart icinga" >> /etc/sudoers && \
 #copy nagios to allow nconf to validate conf
  cp /usr/sbin/icinga /var/www/html/nconf/bin/icinga && \
  usermod -aG nagios www-data && \
@@ -79,17 +80,17 @@ chown www-data:www-data /var/www/html/nconf/config /var/www/html/nconf/temp /var
  # Fix external commands && \
  chmod 2770 /var/lib/icinga/rw && \
  ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
- if [ -f /etc/apt/apt.conf.d/01proxy ]; then rm /etc/apt/apt.conf.d/01proxy; fi && \
-# Secure SSMTP configuration
+ if [ -f /etc/apt/apt.conf.d/01proxy ]; then rm /etc/apt/apt.conf.d/01proxy; fi  && \
+ # Secure SSMTP configuration
  if [ ! -f msmtprc ]; then touch /etc/msmtprc; fi ; \
-  mv /etc/msmtprc /etc/icinga/  && \
-  ln -snf /etc/icinga/msmtprc /etc/msmtprc && \
-  ln -snf /usr/bin/msmtp /etc/alternatives/mail && \
-  ln -snf /usr/bin/msmtp /usr/bin/sendmail && \
-  chown :msmtp /etc/icinga/msmtprc && \
-  chown :msmtp /usr/bin/msmtp && \
-  chmod 640 /etc/icinga/msmtprc && \
-  chmod g+s /usr/bin/msmtp
+ mv /etc/msmtprc /etc/icinga/  && \
+ ln -snf /etc/icinga/msmtprc /etc/msmtprc && \
+ ln -snf /usr/bin/msmtp /etc/alternatives/mail && \
+ ln -snf /usr/bin/msmtp /usr/bin/sendmail && \
+ chown :msmtp /etc/icinga/msmtprc && \
+ chown :msmtp /usr/bin/msmtp && \
+ chmod 640 /etc/icinga/msmtprc && \
+ chmod g+s /usr/bin/msmtp
 
 #overwrite icinga default configuration
 COPY files/icinga.cfg /etc/icinga/icinga.cfg
