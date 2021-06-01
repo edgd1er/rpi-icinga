@@ -35,7 +35,7 @@ RUN if [[ -n ${aptcacher} ]]; then echo "Acquire::http::Proxy \"http://${aptcach
  apt-get update && apt-get upgrade -y && export DEBIAN_FRONTEND=noninteractive && \
  apt-get -o Dpkg::Options::="--force-confold" install -qy --no-install-recommends curl ssl-cert ca-certificates \
  vim sed wget apache2 mariadb-client icinga icinga-doc nagios-nrpe-plugin msmtp msmtp-mta sudo supervisor monitoring-plugins-standard \
- nagios-images monitoring-plugins snmp host dnsutils libnet-snmp-perl \
+ nagios-images monitoring-plugins snmp host dnsutils libnet-snmp-perl libdbi-perl libdbd-mysql libdbd-mysql libdbi1 libdbd-mysql-perl \
  php${PHPVER} php${PHPVER}-mysql libapache2-mod-php${PHPVER} cron && rm -rf /var/lib/apt/lists/* && ls -al /etc/php* && \
  sed -i "s/upload_max_filesize = 2M/upload_max_filesize = $MAX_UPLOAD/" /etc/php/${PHPVER}/apache2/php.ini && \
  sed -i "s/post_max_size = 8M/post_max_size = $MAX_UPLOAD/" /etc/php/${PHPVER}/apache2/php.ini && \
