@@ -2,13 +2,12 @@ DOCKER=/usr/bin/docker
 DOCKER_IMAGE_NAME=edgd1er/rpi-icinga-nconf
 PTF=linux/amd64
 DKRFILE=./Dockerfile.all
-ARCHI=$(dpkg --print-architecture)
+ARCHI := $(shell dpkg --print-architecture)
 IMAGE=rpi-icinga-nconf
 PROGRESS=AUTO
 WHERE=--load
 CACHE=
-
-aptCacher=
+aptCacher:=$(shell ifconfig wlp2s0 | awk '/inet /{print $$2}')
 
 default: build
 
@@ -17,7 +16,7 @@ lint:
 
 build:
 	$(DOCKER) buildx build $(WHERE) --platform $(PTF) -f $(DKRFILE) --build-arg NAME=$(NAME) \
-    $(CACHE) --progress $(PROGRESS) --build-arg aptCacher=$aptCacher -t $(IMAGE) .
+    $(CACHE) --progress $(PROGRESS) --build-arg aptCacher=$(aptCacher) -t $(IMAGE) .
 
 push:
 	$(DOCKER) login
