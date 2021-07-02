@@ -2,11 +2,14 @@ name: build rpi-icinga-nconf multi-arch images
 
 on:
   push:
-    branches: master
+    branches:
+      - master
+    paths-ignore:
+      - '.github/**'
 env:
   IMAGE: rpi-icinga-nconf
   TAG: latest
-  aptCacher:
+  aptCacher: ''
 
 jobs:
   buildx:
