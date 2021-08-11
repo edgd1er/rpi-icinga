@@ -31,15 +31,21 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 #hadolint ignore=DL3008,SC2016
 RUN if [[ -n ${aptcacher} ]]; then echo "Acquire::http::Proxy \"http://${aptcacher}:3142\";" >/etc/apt/apt.conf.d/01proxy && \
   echo "Acquire::https::Proxy \"http://${aptcacher}:3142\";" >>/etc/apt/apt.conf.d/01proxy ; fi && \
- #install icinga
+ #allow mibs strings
+ sed -i 's/main$/main contrib non-free/' /etc/apt/sources.list && \
+ #install icinga \
  apt-get update && apt-get upgrade -y && export DEBIAN_FRONTEND=noninteractive && \
  apt-get -o Dpkg::Options::="--force-confold" install -qy --no-install-recommends curl ssl-cert ca-certificates \
- vim sed wget apache2 mariadb-client icinga icinga-doc nagios-nrpe-plugin msmtp msmtp-mta sudo supervisor monitoring-plugins-standard \
- nagios-images monitoring-plugins snmp host dnsutils libnet-snmp-perl libdbi-perl libdbd-mysql libdbd-mysql libdbi1 libdbd-mysql-perl \
- php${PHPVER} php${PHPVER}-mysql libapache2-mod-php${PHPVER} cron && rm -rf /var/lib/apt/lists/* && ls -al /etc/php* && \
+ vim sed wget apache2 mariadb-client icinga icinga-doc nagios-nrpe-plugin nagios-plugins-contrib msmtp msmtp-mta sudo \
+ supervisor monitoring-plugins-standard snmp-mibs-downloader nagios-images monitoring-plugins snmp host dnsutils \
+ libnet-snmp-perl libdbi-perl libdbd-mysql libdbd-mysql libdbi1 libdbd-mysql-perl php${PHPVER} php${PHPVER}-mysql \
+ libapache2-mod-php${PHPVER} cron && rm -rf /var/lib/apt/lists/* && ls -al /etc/php* && \
  sed -i "s/upload_max_filesize = 2M/upload_max_filesize = $MAX_UPLOAD/" /etc/php/${PHPVER}/apache2/php.ini && \
  sed -i "s/post_max_size = 8M/post_max_size = $MAX_UPLOAD/" /etc/php/${PHPVER}/apache2/php.ini && \
  sed -i "s#;sendmail_path =#sendmail_path =\"/usr/bin/msmtp -t -C /etc/msmtprc\"#" /etc/php/${PHPVER}/apache2/php.ini && \
+ echo 'set sendmail="/usr/bin/msmtp"' >> /etc/mail.rc && \
+ echo 'set mta="/usr/bin/msmtp"' >> /etc/mail.rc && \
+ sed -i 's#/usr/bin/mail#/usr/bin/msmtp#' /etc/icinga/commands.cfg && \
  sed -i '/DocumentRoot.*/a \ \tRewriteEngine on\n\tRewriteRule   "^/$" "/icinga/" [R]' /etc/apache2/sites-available/000-default.conf && \
  sed -i '/DocumentRoot.*/a \ \tRewriteEngine on\n\tRewriteRule   "^/$" "/icinga/" [R]' /etc/apache2/sites-available/default-ssl.conf && \
  a2enmod php${PHPVER} && a2enmod rewrite && a2enmod ssl && a2ensite default-ssl && rm -f /var/www/html/index.html && \
@@ -90,7 +96,8 @@ RUN if [[ -n ${aptcacher} ]]; then echo "Acquire::http::Proxy \"http://${aptcach
  chown :msmtp /etc/icinga/msmtprc && \
  chown :msmtp /usr/bin/msmtp && \
  chmod 640 /etc/icinga/msmtprc && \
- chmod g+s /usr/bin/msmtp
+ chmod g+s /usr/bin/msmtp && \
+ echo 'set sendmail="/usr/bin/msmtp"' >> /etc/mail.rc
 
 #overwrite icinga default configuration
 COPY files/icinga.cfg /etc/icinga/icinga.cfg

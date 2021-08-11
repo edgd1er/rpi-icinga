@@ -25,6 +25,11 @@ Both are EOL and icinga 1.x is a read only repository. (no updates to expect ;) 
 * define user and password access.
 * every week clean icinga archives logs over MAXDAYS. rotation is on a daily basis.
 * Enable/Disable external commands through env: EXTERNAL_COMMANDS_ENABLE
+* Notifications: change miscommand: 
+    * notify-host-by-email: /bin/mail -> /usr/bin/msmtp
+    * notify-service-by-email: /bin/mail -> /usr/bin/msmtp
+* Added non-free contrib repositories to allow snmp-mibs-downloader to update mibs definitions.
+    
 
 ## Usage
 
@@ -35,13 +40,14 @@ Both are EOL and icinga 1.x is a read only repository. (no updates to expect ;) 
   -v cache:/var/cache/icinga \
   -v $(pwd)/log:/var/log/icinga \
   -e EXTERNAL_COMMANDS_ENABLE=0
-  -e MAXDAYS=320 \
+  -e REMOVE_OLDER_THAN=320 \
   -e MYSQL_HOST=mysqlServerHostname
   -e MYSQL_USER=user
   -e MYSQL_PASSWORD=password
   -e MYSQL_DATABASE=database
   -e MYSQL_PORT=3306
   -e SMTP_HOST=smtp.domain.tld
+  -e SMTP_PORT=1234
   -e SMTP_FROM=useremail@domain.tld
   -e SMTP_USER=username
   -e SMTP_PWD=password
@@ -53,7 +59,7 @@ Run with docker-compose:
 
 ```
 # docker-compose.yml
-version: '3.1'
+version: '3.5'
 services:
     icinga:
      image: edgd1er/rpi-icinga-nconf:latest
@@ -62,10 +68,17 @@ services:
         - "8008:80"
         - "8009:443"
      environment:
-     - MAXDAYS: 320
+      TZ: "Europe/Paris"
+      REMOVE_OLDER_THAN: "120"
+      EXTERNAL_COMMANDS_ENABLE: "1"
+      SMTP_HOST: "smtp.myisp.tld"
+      SMTP_PORT: 1234
+      SMTP_FROM: "send_adress@domain.tld"
+      SMTP_USER: "recipient@doamin.tld"
+      SMTP_PWD: "smtp_password"
+      SMTP_STARTTLS: "on"
      env_file:
        - envMysql
-       - envMsmtp
      tmpfs:
         - /var/log/icinga
         - /var/cache/icinga
@@ -89,13 +102,6 @@ MYSQL_DATABASE=nconfdb
 MYSQL_USER=nconf_user
 MYSQL_PASSWORD=changeIt
 MYSQL_HOST_PORT=3306
-
-### envMsmtp
-
-SMTP_HOST="smtp.domain.tld"
-SMTP_FROM="sender_email"
-SMTP_USER="sender_login"
-SMTP_PWD="sender_password"
 
 ## Volumes
 
