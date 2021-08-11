@@ -2,11 +2,6 @@ version: '3.5'
 services:
   icinga:
     image: edgd1er/rpi-icinga-nconf:latest
-    build:
-      dockerfile: Dockerfile.all
-      context: .
-      args:
-        aptcache:
     restart: unless-stopped
     ports:
       - "8009:443"
@@ -14,13 +9,18 @@ services:
       - ./archives/:/var/archives/
     environment:
       TZ: "Europe/Paris"
+      HTUSER: "icingaadmin"
+      HTPASS: "password"
       REMOVE_OLDER_THAN: "120"
       EXTERNAL_COMMANDS_ENABLE: "1"
+      SMTP_HOST: "smtp.myisp.tld"
+      SMTP_PORT: 1234
+      SMTP_FROM: "send_adress@domain.tld"
+      SMTP_USER: "recipient@doamin.tld"
+      SMTP_PWD: "smtp_password"
+      SMTP_STARTTLS: "on"
     env_file:
       - envMysql.icinga
-      - envMsmtp.mine
-    #networks:
-    # - pihole_nginx-net
     tmpfs:
       - /var/log/icinga
       - /var/cache/icinga

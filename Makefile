@@ -10,6 +10,7 @@ CACHE=
 aptCacher:=$(shell ifconfig wlp2s0 | awk '/inet /{print $$2}')
 
 default: build
+all: lint build test
 
 lint:
 	$(DOCKER) run --rm -i hadolint/hadolint < Dockerfile.all
