@@ -97,7 +97,8 @@ RUN if [[ -n ${aptcacher} ]]; then echo "Acquire::http::Proxy \"http://${aptcach
  chown :msmtp /usr/bin/msmtp && \
  chmod 640 /etc/icinga/msmtprc && \
  chmod g+s /usr/bin/msmtp && \
- echo 'set sendmail="/usr/bin/msmtp"' >> /etc/mail.rc
+ echo 'set sendmail="/usr/bin/msmtp"' >> /etc/mail.rc && \
+ echo "alias salias='source .bashrc'\nalias ll='ls-al'\nalias check_snmp='/usr/lib/nagios/plugins/check_snmp'" >> /root/.bashrc
 
 #overwrite icinga default configuration
 COPY files/icinga.cfg /etc/icinga/icinga.cfg

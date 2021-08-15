@@ -5,6 +5,13 @@
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/edgd1er/rpi-icinga-nconf.svg)](https://hub.docker.com/r/edgd1er/rpi-icinga-nconf/) [![License](https://img.shields.io/github/license/edgd1er/rpi-icinga.svg)](LICENSE)
 
+![](https://badgen.net/docker/size/edgd1er/nut-stats/latest/amd64?icon=docker&label=Size%20amd64)
+![](https://badgen.net/docker/size/edgd1er/nut-stats/latest/arm/v7?icon=docker&label=Size%20armv7)
+![](https://badgen.net/docker/size/edgd1er/nut-stats/latest/arm/v6?icon=docker&label=Size%20armv6)
+
+![](https://badgen.net/docker/layers/edgd1er/nut-stats/latest/amd64?icon=docker&label=Layers%20amd64)
+![](https://badgen.net/docker/layers/edgd1er/nut-stats/latest/arm/v7?icon=docker&label=Layers%20armv7)
+![](https://badgen.net/docker/layers/edgd1er/nut-stats/latest/arm/v6?icon=docker&label=Layers%20armv6)
 
 Raspberry Pi-compatible [Icinga](https://icinga.com/docs/icinga1/latest/en/) + [nconf](https://github.com/Bonsaif/new-nconf/archive/nconf-v1.4.0-final2.tar.gz) Docker image. Includes [mSMTP](https://wiki.debian.org/msmtp) for Email notifications.
 
