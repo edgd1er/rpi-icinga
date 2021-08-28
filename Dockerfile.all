@@ -1,3 +1,16 @@
+# syntax=docker/dockerfile:1
+FROM debian:buster-slim as docs
+
+#Docs https://github.com/Icinga/icinga-doc/archive/refs/heads/master.zip
+WORKDIR /var/www/html
+#hadolint ignore=DL3008,SC2016
+RUN apt-get update && apt-get install -y --no-install-recommends xsltproc unzip make wget ssl-cert ca-certificates sed && \
+    wget -qO master.zip https://github.com/Icinga/icinga-doc/archive/refs/heads/master.zip && \
+    unzip master.zip && ls -al && sed -i 's/#set -x/set -x/g' ./icinga-doc-master/html.sh && \
+    sed -i 's#^rm \$LANG/\$files.html#[ -e \$LANG/\$files.html ] \&\& rm \$LANG/\$files.html#' ./icinga-doc-master/html.sh
+WORKDIR /var/www/html/icinga-doc-master/
+RUN ./html.sh en -n && cp -r html/docs /var/www/html/ && rm -Rf /var/www/html/icinga-doc-master
+
 FROM debian:buster-slim
 LABEL maintainer=edgd1er
 
@@ -43,13 +56,10 @@ RUN if [[ -n ${aptcacher} ]]; then echo "Acquire::http::Proxy \"http://${aptcach
  sed -i "s/upload_max_filesize = 2M/upload_max_filesize = $MAX_UPLOAD/" /etc/php/${PHPVER}/apache2/php.ini && \
  sed -i "s/post_max_size = 8M/post_max_size = $MAX_UPLOAD/" /etc/php/${PHPVER}/apache2/php.ini && \
  sed -i "s#;sendmail_path =#sendmail_path =\"/usr/bin/msmtp -t -C /etc/msmtprc\"#" /etc/php/${PHPVER}/apache2/php.ini && \
- echo 'set sendmail="/usr/bin/msmtp"' >> /etc/mail.rc && \
- echo 'set mta="/usr/bin/msmtp"' >> /etc/mail.rc && \
  sed -i 's#/usr/bin/mail#/usr/bin/msmtp#' /etc/icinga/commands.cfg && \
  sed -i '/DocumentRoot.*/a \ \tRewriteEngine on\n\tRewriteRule   "^/$" "/icinga/" [R]' /etc/apache2/sites-available/000-default.conf && \
  sed -i '/DocumentRoot.*/a \ \tRewriteEngine on\n\tRewriteRule   "^/$" "/icinga/" [R]' /etc/apache2/sites-available/default-ssl.conf && \
  a2enmod php${PHPVER} && a2enmod rewrite && a2enmod ssl && a2ensite default-ssl && rm -f /var/www/html/index.html && \
- #Add nconf (https://github.com/Bonsaif/new-nconf/releases)
  mkdir -p /var/www/html/nconf && wget -q $NCONFDL -O /var/www/html/nconf.tar.gz && \
  tar -zxf /var/www/html/nconf.tar.gz -C /var/www/html/nconf --strip-components=1 && rm /var/www/html/nconf.tar.gz && \
  cp /var/www/html/nconf/config.orig/* /var/www/html/nconf/config/ && \
@@ -90,6 +100,8 @@ RUN if [[ -n ${aptcacher} ]]; then echo "Acquire::http::Proxy \"http://${aptcach
  # Secure SSMTP configuration
  if [ ! -f msmtprc ]; then touch /etc/msmtprc; fi ; \
  mv /etc/msmtprc /etc/icinga/  && \
+ echo 'set sendmail="/usr/bin/msmtp"' >> /etc/mail.rc && \
+ echo 'set mta="/usr/bin/msmtp"' >> /etc/mail.rc && \
  ln -snf /etc/icinga/msmtprc /etc/msmtprc && \
  ln -snf /usr/bin/msmtp /etc/alternatives/mail && \
  ln -snf /usr/bin/msmtp /usr/bin/sendmail && \
@@ -98,15 +110,18 @@ RUN if [[ -n ${aptcacher} ]]; then echo "Acquire::http::Proxy \"http://${aptcach
  chmod 640 /etc/icinga/msmtprc && \
  chmod g+s /usr/bin/msmtp && \
  echo 'set sendmail="/usr/bin/msmtp"' >> /etc/mail.rc && \
- echo $'alias salias=\'source .bashrc\'\n\
- alias ll=\'ls-al\'\n\
- export PATH=/usr/lib/nagios/plugins:$PATH' >> /root/.bashrc
-
+ echo $'alias salias=\'source ~/.bashrc\'\n\
+alias ll=\'ls -al\'\n\
+alias plugins=\'ls /usr/lib/nagios/plugins\'\n\
+export PATH=/usr/lib/nagios/plugins:$PATH' >> /root/.bashrc
+#Add nconf (https://github.com/Bonsaif/new-nconf/releases)
+COPY --from=docs /var/www/html/docs/en /var/www/html/docs
 #overwrite icinga default configuration
 COPY files/icinga.cfg /etc/icinga/icinga.cfg
 COPY files/apache2.conf /etc/apache2/conf-enabled/icinga.conf
 COPY files/cgi.cfg /etc/icinga/cgi.cfg
 COPY files/resource.cfg /etc/icinga/resource.cfg
+COPY files/command.cfg /etc/icinga/command.cfg
 #add local deployment
 COPY files/deployment.ini /var/www/html/nconf/config/deployment.ini
 

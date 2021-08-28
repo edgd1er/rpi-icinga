@@ -111,7 +111,8 @@ waitForMysql
 res=$(mysql -h ${MYSQL_HOST} -u${MYSQL_USER} -p${MYSQL_PASSWORD} -D ${MYSQL_DATABASE} -P${MYSQL_HOST_PORT} -Be 'show tables;')
 ret=$?
 
-if [ $ret -ne 0 -o $(echo $res | wc -w) -lt 7 ]; then
+if [ $ret -ne 0 ] || [ $(echo $res | wc -w) -lt 7 ]; then
+  set +H
   echo -e "\n/!\Schema is not complete/!\ "
   createDatabase
 fi
@@ -126,6 +127,9 @@ setRights
 setHtPasswd
 #Define external commands status upon ENV var.
 setCheckCommands
+
+echo "Plugins list:"
+ls /usr/lib/nagios/plugins\
 
 echo -e "Starting apache"
 supervisorctl start apache2
