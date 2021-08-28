@@ -1,6 +1,5 @@
 name: build rpi-icinga-nconf multi-arch images
 
-
 on:
   push:
     branches:
@@ -21,7 +20,6 @@ env:
 
 jobs:
   buildx:
-    needs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
