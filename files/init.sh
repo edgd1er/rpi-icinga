@@ -131,6 +131,11 @@ setCheckCommands
 echo "Plugins list:"
 ls /usr/lib/nagios/plugins\
 
+# allow nagios / www-data access to logs.
+[ ! -d /var/log/icinga/archives ] && mkdir -p /var/log/icinga/archives && chown nagios:nagios /var/log/icinga/archives
+touch /var/log/icinga/icinga.log && chmod 640 /var/log/icinga/icinga.log
+
+# start daemonsœ
 echo -e "Starting apache"
 supervisorctl start apache2
 echo -e "Starting icinga"
