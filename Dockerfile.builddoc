@@ -1,0 +1,18 @@
+# syntax=docker/dockerfile:1
+FROM debian:buster-slim as docs
+
+ARG aptcacher
+ARG dlDoc=https://github.com/Icinga/icinga-doc/archive/refs/heads/master.zip
+
+WORKDIR /var/www/html
+#hadolint ignore=DL3008,SC2016
+RUN  if [ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptcacher}:3142\";" >/etc/apt/apt.conf.d/01proxy && \
+       echo "Acquire::https::Proxy \"http://${aptcacher}:3142\";" >>/etc/apt/apt.conf.d/01proxy ; fi && \
+    export DEBIAN_FRONTEND=noninteractive && apt-get update && \
+    apt-get install -y --no-install-recommends xsltproc tar unzip make wget ssl-cert ca-certificates sed && \
+    wget -qO master.zip $dlDoc && \
+    unzip master.zip && ls -al && sed -i 's/#set -x/set -x/g' ./icinga-doc-master/html.sh && \
+    sed -i 's#^rm \$LANG/\$files.html#[ -e \$LANG/\$files.html ] \&\& rm \$LANG/\$files.html#' ./icinga-doc-master/html.sh && \
+    cd /var/www/html/icinga-doc-master/ && ./html.sh en -n && rm -rf /var/lib/apt/lists/* && \
+    if [ -n "${aptcacher}" ]; then rm /etc/apt/apt.conf.d/01proxy; fi && \
+    tar -zcvf /var/www/html/doc.tar.gz -C /var/www/html/icinga-doc-master/ js stylesheets images -C html/docs en

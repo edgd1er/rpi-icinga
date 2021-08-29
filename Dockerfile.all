@@ -1,22 +1,4 @@
 # syntax=docker/dockerfile:1
-FROM debian:buster-slim as docs
-
-ARG aptcacher
-ARG dlDoc=https://github.com/Icinga/icinga-doc/archive/refs/heads/master.zip
-
-WORKDIR /var/www/html
-#hadolint ignore=DL3008,SC2016
-RUN  if [ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptcacher}:3142\";" >/etc/apt/apt.conf.d/01proxy && \
-       echo "Acquire::https::Proxy \"http://${aptcacher}:3142\";" >>/etc/apt/apt.conf.d/01proxy ; fi && \
-    export DEBIAN_FRONTEND=noninteractive && apt-get update && \
-    apt-get install -y --no-install-recommends xsltproc unzip make wget ssl-cert ca-certificates sed && \
-    wget -qO master.zip $dlDoc && \
-    unzip master.zip && ls -al && sed -i 's/#set -x/set -x/g' ./icinga-doc-master/html.sh && \
-    sed -i 's#^rm \$LANG/\$files.html#[ -e \$LANG/\$files.html ] \&\& rm \$LANG/\$files.html#' ./icinga-doc-master/html.sh
-WORKDIR /var/www/html/icinga-doc-master/
-RUN ./html.sh en -n && \
-    if [ -n "${aptcacher}" ]; then rm /etc/apt/apt.conf.d/01proxy; fi
-
 FROM debian:buster-slim
 LABEL maintainer=edgd1er
 
@@ -122,11 +104,11 @@ alias ll=\'ls -al\'\n\
 alias plugins=\'ls /usr/lib/nagios/plugins\'\n\
 export PATH=/usr/lib/nagios/plugins:$PATH' >> /root/.bashrc
 # add icinga doc
-COPY --from=docs /var/www/html/icinga-doc-master/html/ /var/www/html/docs/
-COPY --from=docs /var/www/html/icinga-doc-master/images /var/www/html/docs/images/
-COPY --from=docs /var/www/html/icinga-doc-master/js /var/www/html/docs/js/
-COPY --from=docs /var/www/html/icinga-doc-master/stylesheets /var/www/html/docs/stylesheets
-#COPY --from=docs /var/www/html/icinga-doc-master /var/www/html/
+#COPY --from=edgd1er/icinga-doc:latest /var/www/html/icinga-doc-master/html/docs /var/www/html/docs/
+#COPY --from=edgd1er/icinga-doc:latest /var/www/html/icinga-doc-master/images /var/www/html/docs/images/
+#COPY --from=edgd1er/icinga-doc:latest /var/www/html/icinga-doc-master/js /var/www/html/docs/js/
+#COPY --from=edgd1er/icinga-doc:latest /var/www/html/icinga-doc-master/stylesheets /var/www/html/docs/stylesheets
+ADD doc.tar.gz  /var/www/html/docs/
 #overwrite icinga default configuration
 COPY files/icinga.cfg /etc/icinga/icinga.cfg
 COPY files/apache2.conf /etc/apache2/conf-enabled/icinga.conf

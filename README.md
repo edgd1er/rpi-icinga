@@ -37,6 +37,7 @@ Both are EOL and icinga 1.x is a read only repository. (no updates to expect ;) 
     * notify-service-by-email: /bin/mail -> /usr/bin/msmtp
 * Added non-free contrib repositories to allow snmp-mibs-downloader to update mibs definitions.
 * alias plugins to list available plugins    
+* added docs from archived github repository (build dockerfile.builddoc, tar docs, import docs)
 
 ## Usage
 
