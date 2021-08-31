@@ -40,6 +40,7 @@ setRights() {
   chown nagios:nagios /var/cache/icinga/
   chmod 755 /var/cache/icinga/.
   find /var/cache/icinga -type f -exec chmod 640 {} \;
+  chmod ug+x /usr/share/icinga/*.sh
 }
 
 waitForMysql() {
@@ -135,7 +136,7 @@ ls /usr/lib/nagios/plugins\
 [ ! -d /var/log/icinga/archives ] && mkdir -p /var/log/icinga/archives && chown nagios:nagios /var/log/icinga/archives
 touch /var/log/icinga/icinga.log && chmod 640 /var/log/icinga/icinga.log
 
-# start daemonsœ
+# start daemons
 echo -e "Starting apache"
 supervisorctl start apache2
 echo -e "Starting icinga"

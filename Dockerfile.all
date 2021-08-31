@@ -14,17 +14,18 @@ ENV MYSQL_DATABASE=nconf
 ENV PHPVER=7.3
 
 COPY files/init.sh /usr/share/icinga/init.sh
+COPY files/mail_to_msmtp.sh /usr/share/icinga/
 COPY files/htpasswd.users /etc/icinga/htpasswd.users
-COPY files/import_existing_nconf_into_db.sh /usr/share/icinga/
-COPY files/create_database.sql /usr/share/icinga/create_database.sql
-COPY files/backupConfs.sh /usr/share/icinga/
 COPY files/import_backup.sh /usr/share/icinga/
+COPY files/backupConfs.sh /usr/share/icinga/
+COPY files/import_existing_nconf_into_db.sh /usr/share/icinga/
+COPY files/create_database.sql /usr/share/icinga/
 COPY files/crontab.backup /etc/cron.d/icinga_backup
 COPY files/here.html /var/www/html/
 # Add Rasperry-Pi logos
 COPY raspberry/ /usr/share/icinga/htdocs/images/logos/raspberry/
 # Add Supervisor configuration
-COPY files/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY files/supervisord.conf /etc/supervisor/supervisord.conf
 
 #add apt-cacher setting if present:
 WORKDIR /var/www/html/
@@ -114,7 +115,6 @@ COPY files/icinga.cfg /etc/icinga/icinga.cfg
 COPY files/apache2.conf /etc/apache2/conf-enabled/icinga.conf
 COPY files/cgi.cfg /etc/icinga/cgi.cfg
 COPY files/resource.cfg /etc/icinga/resource.cfg
-COPY files/command.cfg /etc/icinga/command.cfg
 #add local deployment
 COPY files/deployment.ini /var/www/html/nconf/config/deployment.ini
 
@@ -133,4 +133,4 @@ CMD curl -s -f -k "https://localhost/here.html"  | grep "OK" || exit 1
 
 # Start services via Supervisor
 ENTRYPOINT ["/usr/bin/supervisord"]
-CMD ["-c","/etc/supervisor/conf.d/supervisord.conf"]
+CMD ["-c","/etc/supervisor/supervisord.conf"]

@@ -5,7 +5,7 @@ ARG aptcacher
 ARG dlDoc=https://github.com/Icinga/icinga-doc/archive/refs/heads/master.zip
 
 WORKDIR /var/www/html
-#hadolint ignore=DL3008,SC2016
+#hadolint ignore=DL3008,SC2016,DL3003
 RUN  if [ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptcacher}:3142\";" >/etc/apt/apt.conf.d/01proxy && \
        echo "Acquire::https::Proxy \"http://${aptcacher}:3142\";" >>/etc/apt/apt.conf.d/01proxy ; fi && \
     export DEBIAN_FRONTEND=noninteractive && apt-get update && \

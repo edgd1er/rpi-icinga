@@ -38,6 +38,7 @@ Both are EOL and icinga 1.x is a read only repository. (no updates to expect ;) 
 * Added non-free contrib repositories to allow snmp-mibs-downloader to update mibs definitions.
 * alias plugins to list available plugins    
 * added docs from archived github repository (build dockerfile.builddoc, tar docs, import docs)
+* CMDS to allow commands.cfg in icinga.cfg (notify-service-by-email, notify-host-by-email, ...)
 
 ## Usage
 
@@ -48,6 +49,7 @@ Both are EOL and icinga 1.x is a read only repository. (no updates to expect ;) 
   -v cache:/var/cache/icinga \
   -v $(pwd)/log:/var/log/icinga \
   -e EXTERNAL_COMMANDS_ENABLE=0
+  -e CMDS='N'
   -e REMOVE_OLDER_THAN=320 \
   -e MYSQL_HOST=mysqlServerHostname
   -e MYSQL_USER=user
@@ -77,6 +79,7 @@ services:
         - "8009:443"
      environment:
       TZ: "Europe/Paris"
+      CMDS: 'N'
       REMOVE_OLDER_THAN: "120"
       EXTERNAL_COMMANDS_ENABLE: "1"
       SMTP_HOST: "smtp.myisp.tld"
@@ -148,6 +151,35 @@ Nconf needs a database to operate. database credentials (login, pwd, db name) ar
 icinga: ```https://ip:port/icinga/```
 
 nconf: ```https://ip:port/nconf/```
+
+### Notifications
+
+As a result of the change to msmstp, notifications command lines have to be rewritten. mail -s is not supported by msmtp.
+The subject (-s "<value>") need to be moved.
+
+As per config, the default value is for the command: notify-host-by-email
+```bash 
+/usr/bin/printf "%b" "***** Nagios *****\n\nNotification Type: $NOTIFICATIONTYPE$\nHost: $HOSTNAME$\nState: $HOSTSTATE$\nAddress: $HOSTADDRESS$\nInfo: $HOSTOUTPUT$\n\nDate/Time: $LONGDATETIME$\n" | /usr/bin/sendmail -s "** $NOTIFICATIONTYPE$ Host Alert: $HOSTNAME$ is $HOSTSTATE$ **" $CONTACTEMAIL$
+```
+the adapted command line would be:
+```bash
+/usr/bin/printf "%b" "subject: [ICINGA]** $NOTIFICATIONTYPE$ Host Alert: $HOSTNAME$ is $HOSTSTATE$\n\n ******* Nagios *****\nNotification Type: $NOTIFICATIONTYPE$\nHost: $HOSTNAME$\nState: $HOSTSTATE$\nAddress: $HOSTADDRESS$\nInfo: $HOSTOUTPUT$\nDate/Time: $LONGDATETIME$\n" | /usr/bin/msmtp $CONTACTEMAIL$
+```
+
+This can be performed through the web interface: miscommands => notify-host-by-email, notify-service-by-email
+or with the script /usr/share/icinga/mail_to_smtp.sh
+
+SQL query to fetch command lines for both notifications (host/service)
+```SQL
+select cv.fk_id_item, cv.attr_value, cv.fk_id_attr
+from ConfigAttrs ca , ConfigValues cv
+where ca.fk_id_class = 13 # misccommands
+and cv.fk_id_attr = ca.id_attr
+and cv.fk_id_attr =99 #command_line
+and cv.fk_id_item in (select cv2.fk_id_item from ConfigValues cv2 where
+cv2.attr_value like 'notify%')
+order by cv.fk_id_item ;
+``
 
 ## Copyright
 
