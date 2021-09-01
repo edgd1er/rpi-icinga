@@ -1,3 +1,6 @@
 #
 .idea/*
-*.zip
+# local archive
+nconf-v1.4.0-final2.tar.gz
+master-doc.zip
+# locally built doc (doc.tar.gz) is incuded in context.

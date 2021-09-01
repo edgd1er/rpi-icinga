@@ -35,4 +35,4 @@ backupBdd
 # archivage
 backupIcingaFiles
 #clean old archives
-find /var/archives/ -type d -mtime +${REMOVE_OLDER_THAN} -exec ls -al {} \; -delete
+find /var/archives/ -type d -mtime +${REMOVE_OLDER_THAN} -print -exec ls -al {} \; -exec rm -Rf {} \;

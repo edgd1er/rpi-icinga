@@ -87,7 +87,7 @@ RUN if [[ -n ${aptcacher} ]]; then echo "Acquire::http::Proxy \"http://${aptcach
     chmod 2770 /var/lib/icinga/rw && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
     if [ -f /etc/apt/apt.conf.d/01proxy ]; then rm /etc/apt/apt.conf.d/01proxy; fi  && \
-    # Secure SSMTP configuration
+    # Secure msmtp configuration
     if [ ! -f msmtprc ]; then touch /etc/msmtprc; fi ; \
     mv /etc/msmtprc /etc/icinga/  && \
     echo 'set sendmail="/usr/bin/msmtp"' >> /etc/mail.rc && \

@@ -152,10 +152,15 @@ icinga: ```https://ip:port/icinga/```
 
 nconf: ```https://ip:port/nconf/```
 
+### Documentation
+
+Documentation is generated using [icinga-doc](https://github.com/Icinga/icinga-doc/) project. As the project is archived, a doc archive is shipped with the docker context (included in the project).
+
 ### Notifications
 
-As a result of the change to msmstp, notifications command lines have to be rewritten. mail -s is not supported by msmtp.
-The subject (-s "<value>") need to be moved.
+[ssmtp](https://wiki.debian.org/sSMTP) is not maintained anymore.
+As a result of the change to [msmtp](https://wiki.debian.org/msmtp), notifications command lines have to be rewritten. mail -s is not supported by msmtp.
+The subject (-s "<value>") need to be removed and a "subject:<value>\n\n" is to be added in front of the message.
 
 As per config, the default value is for the command: notify-host-by-email
 ```bash 
@@ -163,7 +168,7 @@ As per config, the default value is for the command: notify-host-by-email
 ```
 the adapted command line would be:
 ```bash
-/usr/bin/printf "%b" "subject: [ICINGA]** $NOTIFICATIONTYPE$ Host Alert: $HOSTNAME$ is $HOSTSTATE$\n\n ******* Nagios *****\nNotification Type: $NOTIFICATIONTYPE$\nHost: $HOSTNAME$\nState: $HOSTSTATE$\nAddress: $HOSTADDRESS$\nInfo: $HOSTOUTPUT$\nDate/Time: $LONGDATETIME$\n" | /usr/bin/msmtp $CONTACTEMAIL$
+/usr/bin/printf "%b" "subject:** $NOTIFICATIONTYPE$ Host Alert: $HOSTNAME$ is $HOSTSTATE$\n\n ******* Nagios *****\nNotification Type: $NOTIFICATIONTYPE$\nHost: $HOSTNAME$\nState: $HOSTSTATE$\nAddress: $HOSTADDRESS$\nInfo: $HOSTOUTPUT$\nDate/Time: $LONGDATETIME$\n" | /usr/bin/msmtp $CONTACTEMAIL$
 ```
 
 This can be performed through the web interface: miscommands => notify-host-by-email, notify-service-by-email
