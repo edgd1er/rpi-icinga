@@ -12,18 +12,21 @@ ENV MYSQL_USER=nconf
 ENV MYSQL_PASSWORD=nconf
 ENV MYSQL_DATABASE=nconf
 ENV PHPVER=7.3
-
-COPY files/init.sh /usr/share/icinga/init.sh
-COPY files/mail_to_msmtp.sh /usr/share/icinga/
-COPY files/htpasswd.users /etc/icinga/htpasswd.users
-COPY files/import_backup.sh /usr/share/icinga/
-COPY files/backupConfs.sh /usr/share/icinga/
-COPY files/import_existing_nconf_into_db.sh /usr/share/icinga/
-COPY files/create_database.sql /usr/share/icinga/
-COPY files/crontab.backup /etc/cron.d/icinga_backup
-COPY files/here.html /var/www/html/
+# add utils scripts for icinga
+COPY files/icinga/share/import_backup.sh /usr/share/icinga/
+COPY files/icinga/share/import_existing_nconf_into_db.sh /usr/share/icinga/
+COPY files/icinga/share/init.sh /usr/share/icinga/
+COPY files/icinga/share/mail_to_msmtp.sh /usr/share/icinga/
+COPY files/icinga/share/backupConfs.sh /usr/share/icinga/
+COPY files/icinga/share/create_database.sql /usr/share/icinga/
+# export database scheduling
+COPY files/icinga/crontab.backup /etc/cron.d/icinga_backup
+# file for healthcheck
+COPY files/apache2/here.html /var/www/html/
+# icinga access control
+COPY files/icinga/etc/htpasswd.users /etc/icinga/
 # Add Rasperry-Pi logos
-COPY raspberry/ /usr/share/icinga/htdocs/images/logos/raspberry/
+COPY files/raspberry/ /usr/share/icinga/htdocs/images/logos/raspberry/
 # Add Supervisor configuration
 COPY files/supervisord.conf /etc/supervisor/supervisord.conf
 
@@ -104,20 +107,25 @@ RUN if [[ -n ${aptcacher} ]]; then echo "Acquire::http::Proxy \"http://${aptcach
 alias ll=\'ls -al\'\n\
 alias plugins=\'ls /usr/lib/nagios/plugins\'\n\
 export PATH=/usr/lib/nagios/plugins:$PATH' >> /root/.bashrc
+#hadolint ignore=DL3008,DL3013
+RUN  apt-get update && apt-get install -y --no-install-recommends python3-pip python3-setuptools \
+     && pip3 install --no-cache-dir wheel setuptools-rust offlinemsmtp && rm -rf /var/lib/apt/lists/*
 # add icinga doc
 #COPY --from=edgd1er/icinga-doc:latest /var/www/html/icinga-doc-master/html/docs /var/www/html/docs/
 #COPY --from=edgd1er/icinga-doc:latest /var/www/html/icinga-doc-master/images /var/www/html/docs/images/
 #COPY --from=edgd1er/icinga-doc:latest /var/www/html/icinga-doc-master/js /var/www/html/docs/js/
 #COPY --from=edgd1er/icinga-doc:latest /var/www/html/icinga-doc-master/stylesheets /var/www/html/docs/stylesheets
 ADD doc.tar.gz  /var/www/html/docs/
-#overwrite icinga default configuration
-COPY files/icinga.cfg /etc/icinga/icinga.cfg
-COPY files/apache2.conf /etc/apache2/conf-enabled/icinga.conf
-COPY files/cgi.cfg /etc/icinga/cgi.cfg
-COPY files/resource.cfg /etc/icinga/resource.cfg
-#add local deployment
+# enable icinga web site
+COPY files/apache2/apache2.conf /etc/apache2/conf-enabled/icinga.conf
+# overwrite icinga default configuration
+COPY files/icinga/etc/icinga.cfg /etc/icinga/icinga.cfg
+COPY files/icinga/etc/cgi.cfg /etc/icinga/cgi.cfg
+COPY files/icinga/etc/resource.cfg /etc/icinga/resource.cfg
+# add local deployment to nconf
 COPY files/deployment.ini /var/www/html/nconf/config/deployment.ini
-
+# add msmtp-queue
+#COPY files/msmtp-queue/systemd/ /etc/systemd/system/
 # Timezone configuration
 ENV TZ=${TZ}
 

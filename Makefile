@@ -16,6 +16,10 @@ aptCacher:=$(shell ifconfig wlp2s0 | awk '/inet /{print $$2}')
 default: build
 all: lint build test
 
+# https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+help:
+	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# Fichiers/,/^# Base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
+
 lint:
 	$(DOCKER) run --rm -i hadolint/hadolint < Dockerfile.builddoc
 	$(DOCKER) run --rm -i hadolint/hadolint < Dockerfile.all

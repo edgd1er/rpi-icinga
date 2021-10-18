@@ -142,3 +142,4 @@ supervisorctl start apache2
 echo -e "Starting icinga"
 supervisorctl start icinga
 supervisorctl start log
+#supervisorctl start offlinemsmtp
