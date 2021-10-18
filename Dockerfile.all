@@ -109,7 +109,7 @@ alias plugins=\'ls /usr/lib/nagios/plugins\'\n\
 export PATH=/usr/lib/nagios/plugins:$PATH' >> /root/.bashrc
 #hadolint ignore=DL3008,DL3013
 RUN  apt-get update && apt-get install -y --no-install-recommends python3-pip python3-setuptools \
-     && pip3 install --no-cache-dir wheel setuptools-rust offlinemsmtp && rm -rf /var/lib/apt/lists/*
+     && pip3 install --no-cache-dir wheel && rm -rf /var/lib/apt/lists/*
 # add icinga doc
 #COPY --from=edgd1er/icinga-doc:latest /var/www/html/icinga-doc-master/html/docs /var/www/html/docs/
 #COPY --from=edgd1er/icinga-doc:latest /var/www/html/icinga-doc-master/images /var/www/html/docs/images/
