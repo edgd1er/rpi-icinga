@@ -2,3 +2,4 @@
 .idea/**
 archives/**
 *.mine
+docker-compose.yml
