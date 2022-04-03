@@ -3,3 +3,4 @@
 archives/**
 *.mine
 docker-compose.yml
+icinga-core-master/
