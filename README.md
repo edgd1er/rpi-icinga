@@ -21,7 +21,7 @@ buster debian image is the last version available as icinga and nconf are EOL an
 
 ## Informations
 
-* multi-arch thanks to buildx ( arm, amd64 )
+* multi-arch thanks to buildx ( armv7,arm64, amd64 ). arm/v6 image is no more available (2022).
 * based on debian:buster-slim (Dockerfile.all)
 * apache 2.4
 * [icinga 1.14.2](https://github.com/Icinga/icinga-core) / [Nconf 1.4](https://github.com/Bonsaif/new-nconf/releases)
