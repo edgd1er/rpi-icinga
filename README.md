@@ -17,12 +17,12 @@ Raspberry Pi-compatible [Icinga](https://icinga.com/docs/icinga1/latest/en/) + [
 
 Based on acch/rpi-icinga docker.
 
-Updated base image with latest version except for icinga and nconf (EOL)
+buster debian image is the last version available as icinga and nconf are EOL and no more available on bookworm.
 
 ## Informations
 
 * multi-arch thanks to buildx ( arm, amd64 )
-* based on latest debian:buster-slim (Dockerfile.all)
+* based on debian:buster-slim (Dockerfile.all)
 * apache 2.4
 * [icinga 1.14.2](https://github.com/Icinga/icinga-core) / [Nconf 1.4](https://github.com/Bonsaif/new-nconf/releases)
 Both are EOL and icinga 1.x is a read only repository. (no updates to expect ;) ) 
