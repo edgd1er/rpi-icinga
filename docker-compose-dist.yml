@@ -1,4 +1,3 @@
-version: '3.5'
 services:
   icinga:
     image: edgd1er/rpi-icinga-nconf:latest

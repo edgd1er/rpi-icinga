@@ -4,6 +4,9 @@
 #
 
 ISMYSQL=0
+MYSQL_HOST=${MYSQL_HOST:-localhost}
+MYSQL_HOST_PORT=${MYSQL_HOST_PORT:-3306}
+
 HTUSER=${HTUSER:-icingaadmin}
 HTPASS=${HTUSER:-icingaadmin}
 
@@ -13,7 +16,7 @@ createDatabase() {
 }
 
 #generate mysql.php files with env values ( needed, because perl script get conf from php files, as i understood )
-generateMysql() {
+generateMysqlConf() {
   echo settings credentials to acccess nconf database
   cat >/var/www/html/nconf/config/mysql.php <<EOF
 <?php
@@ -28,6 +31,7 @@ define('DBHOST', "$MYSQL_HOST");
 define('DBNAME', "$MYSQL_DATABASE");
 define('DBUSER', "$MYSQL_USER");
 define('DBPASS', "$MYSQL_PASSWORD");
+define('DBPORT', "$MYSQL_HOST_PORT");
 
 ?>
 EOF
@@ -41,6 +45,7 @@ setRights() {
   chmod 755 /var/cache/icinga/.
   find /var/cache/icinga -type f -exec chmod 640 {} \;
   chmod ug+x /usr/share/icinga/*.sh
+  chown www-data:www-data /etc/icinga/{Default_collector,global} /var/www/html/nconf/{config,temp,output}
 }
 
 waitForMysql() {
@@ -102,8 +107,6 @@ setCheckCommands(){
 }
 
 ## Main
-MYSQL_HOST=${MYSQL_HOST:-localhost}
-MYSQL_HOST_PORT=${MYSQL_HOST_PORT:-3306}
 # wait for mysql to be ready.
 waitForMysql
 
@@ -118,10 +121,11 @@ if [ $ret -ne 0 ] || [ $(echo $res | wc -w) -lt 7 ]; then
   createDatabase
 fi
 
-generateMysql
+generateMysqlConf
 #needed when /var/cache is mounted
 setMailConfig
 sed -i.bak "s/LogLevel .*$/LogLevel debug/" /etc/apache2/apache2.conf
+
 
 setRights
 #define password at each restart

@@ -45,6 +45,7 @@ RUN if [[ -n ${aptcacher} ]]; then echo "Acquire::http::Proxy \"http://${aptcach
     supervisor monitoring-plugins-standard snmp-mibs-downloader nagios-images monitoring-plugins snmp host dnsutils \
     libnet-snmp-perl libdbi-perl libdbd-mysql libdbd-mysql libdbi1 libdbd-mysql-perl php${PHPVER} php${PHPVER}-mysql \
     libapache2-mod-php${PHPVER} cron && rm -rf /var/lib/apt/lists/* && ls -al /etc/php* && \
+    #setup apache sites
     sed -i "s/upload_max_filesize = 2M/upload_max_filesize = $MAX_UPLOAD/" /etc/php/${PHPVER}/apache2/php.ini && \
     sed -i "s/post_max_size = 8M/post_max_size = $MAX_UPLOAD/" /etc/php/${PHPVER}/apache2/php.ini && \
     sed -i "s#;sendmail_path =#sendmail_path =\"/usr/bin/msmtp -t -C /etc/msmtprc\"#" /etc/php/${PHPVER}/apache2/php.ini && \
@@ -52,6 +53,7 @@ RUN if [[ -n ${aptcacher} ]]; then echo "Acquire::http::Proxy \"http://${aptcach
     sed -i '/DocumentRoot.*/a \ \tRewriteEngine on\n\tRewriteRule   "^/$" "/icinga/" [R]\n\tRewriteRule   "^/docs$" "/icinga/docs/en" [R]' /etc/apache2/sites-available/000-default.conf && \
     sed -i '/DocumentRoot.*/a \ \tRewriteEngine on\n\tRewriteRule   "^/$" "/icinga/" [R]\n\tRewriteRule   "^/docs/?$" "/docs/en" [R]' /etc/apache2/sites-available/default-ssl.conf && \
     a2enmod php${PHPVER} && a2enmod rewrite && a2enmod ssl && a2ensite default-ssl && rm -f /var/www/html/index.html && \
+    #Add nconf (https://github.com/Bonsaif/new-nconf/releases)
     mkdir -p /var/www/html/nconf && wget -q $NCONFDL -O /var/www/html/nconf.tar.gz && \
     tar -zxf /var/www/html/nconf.tar.gz -C /var/www/html/nconf --strip-components=1 && rm /var/www/html/nconf.tar.gz && \
     cp /var/www/html/nconf/config.orig/* /var/www/html/nconf/config/ && \
@@ -62,14 +64,18 @@ RUN if [[ -n ${aptcacher} ]]; then echo "Acquire::http::Proxy \"http://${aptcach
     sed -i 's/\"NConf\"/\"nconfdb\"/' /var/www/html/nconf/config/mysql.php && \
     sed -i 's/\"nconf\"/\"nconf_user\"/' /var/www/html/nconf/config/mysql.php && \
     sed -i 's/\"link2db\"/\"changeIt\"/' /var/www/html/nconf/config/mysql.php && \
-    #Add nconf (https://github.com/Bonsaif/new-nconf/releases)
+    #Adapt for nconf for mysql port change
+    sed -i "s/DBNAME);/DBNAME,DBPORT);/g" /var/www/html/nconf/main.php && \
+    sed -i '72i \   my $dbport = &readNConfConfig(NC_CONFDIR."/mysql.php","DBPORT","scalar");' /var/www/html/nconf/bin/lib/NConf/DB.pm && \
+    sed -i 's/DBI:mysql:database=$dbname;host=$dbhost"/DBI:mysql:database=$dbname;host=$dbhost;port=$dbport"/g' /var/www/html/nconf/bin/lib/NConf/DB.pm && \
+    sed -i 's/DBI:mysql:database=$dbname;mysql_socket/DBI:mysql:database=$dbname;port=$dbport;mysql_socket/g' /var/www/html/nconf/bin/lib/NConf/DB.pm && \
     mkdir -p /etc/icinga/Default_collector/ -p /etc/icinga/global -p /var/log/icinga/archives -p /var/archives/ \
     /var/www/html/nconf/output /var/www/html/nconf/config /var/www/html/nconf/output \
     /var/www/html/nconf/static_cfg /var/www/html/nconf/temp && \
     find /var/www/html/nconf -type d -exec chmod 755 {} \; && \
     find /var/www/html/nconf -type f -exec chmod 644 {} \; && \
-    chown www-data:www-data /etc/icinga/Default_collector /etc/icinga/global && \
-    chown www-data:www-data /var/www/html/nconf/config /var/www/html/nconf/temp /var/www/html/nconf/output \
+    chown www-data:www-data /etc/icinga/Default_collector /etc/icinga/global /var/www/html/nconf/config \
+    /var/www/html/nconf/temp /var/www/html/nconf/output \
     /var/www/html/nconf/static_cfg && chmod 644 /var/www/html/nconf/config/* && \
     chmod 744 /usr/share/icinga/init.sh /usr/share/icinga/import_backup.sh \
     /usr/share/icinga/import_existing_nconf_into_db.sh /usr/share/icinga/backupConfs.sh && \
@@ -106,6 +112,7 @@ RUN if [[ -n ${aptcacher} ]]; then echo "Acquire::http::Proxy \"http://${aptcach
     echo $'alias salias=\'source ~/.bashrc\'\n\
 alias ll=\'ls -al\'\n\
 alias plugins=\'ls /usr/lib/nagios/plugins\'\n\
+alias uptools=\'apt-get update && apt-get install -y mariadb-client monitoring-plugins-standard snmp-mibs-downloader nagios-images monitoring-plugins snmp host dnsutils\'\n \
 export PATH=/usr/lib/nagios/plugins:$PATH' >> /root/.bashrc
 #hadolint ignore=DL3008,DL3013
 RUN  apt-get update && apt-get install -y --no-install-recommends python3-pip python3-setuptools \

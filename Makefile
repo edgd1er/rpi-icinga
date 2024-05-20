@@ -34,8 +34,8 @@ endif
 
 
 build:
-	$(DOCKER) buildx build $(WHERE) --platform $(PTF) -f $(DKRFILE) --build-arg NAME=$(NAME) \
-    $(CACHE) --progress $(PROGRESS) --build-arg aptCacher=$(aptCacher) -t ${DUSER}/$(IMAGE) .
+	$(DOCKER) buildx build $(WHERE) --platform $(PTF) -f $(DKRFILE) $(CACHE) --progress $(PROGRESS) \
+ 	--build-arg aptCacher=$(aptCacher) -t ${DUSER}/$(IMAGE) .
 
 push:
 	$(DOCKER) login

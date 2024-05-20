@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 #Variables
-MYSQL_DATABASE="nconfdb"
-MYSQL_HOST="holdom3"
-MYSQL_PASSWORD="changeIt"
-MYSQL_PORT="3326"
-MYSQL_USER="nconf-user"
+MYSQL_DATABASE=${MYSQL_DATABASE:-"nconfdb"}
+MYSQL_HOST=${MYSQL_HOST:-"db"}
+MYSQL_PASSWORD=${MYSQL_PASSWORD:-"changeIt"}
+MYSQL_PORT=${MYSQL_HOST_PORT:-"3306"}
+MYSQL_USER=${MYSQL_USER:-"nconf-user"}
 
 cmd_notify_host_by_email=''
 cmd_notify_service_by_email=''
