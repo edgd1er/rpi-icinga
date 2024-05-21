@@ -8,7 +8,7 @@ MYSQL_HOST=${MYSQL_HOST:-localhost}
 MYSQL_HOST_PORT=${MYSQL_HOST_PORT:-3306}
 
 HTUSER=${HTUSER:-icingaadmin}
-HTPASS=${HTUSER:-icingaadmin}
+HTPASS=${HTPASS:-password}
 
 createDatabase() {
   echo creating database tables
