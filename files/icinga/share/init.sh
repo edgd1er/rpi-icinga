@@ -49,6 +49,9 @@ setRights() {
 }
 
 waitForMysql() {
+  if [[ ${MYSQL_HOST} == "NONE" ]]; then
+    return
+  fi
   n=0
   while (true and ${n} -lt 30); do
     /usr/bin/mysql -h ${MYSQL_HOST} -u${MYSQL_USER} -p${MYSQL_PASSWORD} -D ${MYSQL_DATABASE} -P${MYSQL_HOST_PORT} -e 'show databases;'
@@ -95,12 +98,12 @@ account default : icinga
 EOF
 }
 
-setHtPasswd(){
+setHtPasswd() {
   HTFILE=/etc/icinga/htpasswd.users
   [[ -w ${HTFILE} ]] && htpasswd -cb ${HTFILE} ${HTUSER} ${HTPASS} || echo
 }
 
-setCheckCommands(){
+setCheckCommands() {
   EXTERNAL_COMMANDS_ENABLE=${EXTERNAL_COMMANDS_ENABLE:-0}
   echo "Writing status ${EXTERNAL_COMMANDS_ENABLE} to icinga conf"
   sed -i -r "s/^(check_external_commands=)(.)/\1${EXTERNAL_COMMANDS_ENABLE}/" /etc/icinga/icinga.cfg
@@ -108,24 +111,25 @@ setCheckCommands(){
 
 ## Main
 # wait for mysql to be ready.
-waitForMysql
+if [[ ${MYSQL_HOST} == "NONE" ]]; then
+  [[ -d /var/www/html/nconf ]] && rm -Rf /var/www/html/nconf || true ]]
 
-[[ ${ISMYSQL} -eq 0 ]] && echo "Cannot connect to Mysql Database: ${MYSQL_HOST}:${MYSQL_HOST_PORT} , user ${MYSQL_USER}" && exit
+else
+  waitForMysql
+  [[ ${ISMYSQL} -eq 0 ]] && echo "Cannot connect to Mysql Database: ${MYSQL_HOST}:${MYSQL_HOST_PORT} , user ${MYSQL_USER}" && exit
+  res=$(mysql -h ${MYSQL_HOST} -u${MYSQL_USER} -p${MYSQL_PASSWORD} -D ${MYSQL_DATABASE} -P${MYSQL_HOST_PORT} -Be 'show tables;')
+  ret=$?
 
-res=$(mysql -h ${MYSQL_HOST} -u${MYSQL_USER} -p${MYSQL_PASSWORD} -D ${MYSQL_DATABASE} -P${MYSQL_HOST_PORT} -Be 'show tables;')
-ret=$?
-
-if [ $ret -ne 0 ] || [ $(echo $res | wc -w) -lt 7 ]; then
-  set +H
-  echo -e "\n/!\Schema is not complete/!\ "
-  createDatabase
+  if [ $ret -ne 0 ] || [ $(echo $res | wc -w) -lt 7 ]; then
+    set +H
+    echo -e "\n/!\Schema is not complete/!\ "
+    createDatabase
+  fi
+  generateMysqlConf
 fi
-
-generateMysqlConf
 #needed when /var/cache is mounted
 setMailConfig
 sed -i.bak "s/LogLevel .*$/LogLevel debug/" /etc/apache2/apache2.conf
-
 
 setRights
 #define password at each restart
@@ -134,8 +138,7 @@ setHtPasswd
 setCheckCommands
 
 echo "Plugins list:"
-ls /usr/lib/nagios/plugins\
-
+ls /usr/lib/nagios/plugins
 # allow nagios / www-data access to logs.
 [ ! -d /var/log/icinga/archives ] && mkdir -p /var/log/icinga/archives && chown nagios:nagios /var/log/icinga/archives
 touch /var/log/icinga/icinga.log && chmod 640 /var/log/icinga/icinga.log

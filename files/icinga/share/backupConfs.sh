@@ -30,7 +30,12 @@ backupBdd() {
 backupIcingaFiles() {
   tar -zcf /var/archives/$OUTDIR/icinga.tar.gz -C /etc/icinga msmtprc Default_collector global $(cd /etc/icinga/; ls *.cfg )
 }
+
 #Main
+if [[ ${DB_HOST:-NONE} == 'NONE' ]]; then
+  echo "no database set"
+  return
+fi
 backupBdd
 # archivage
 backupIcingaFiles

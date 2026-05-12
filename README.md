@@ -1,7 +1,7 @@
 # rpi-icinga + nconf
 
 [![GitHub Issues](https://img.shields.io/github/issues/edgd1er/rpi-icinga.svg)](https://github.com/edgd1er/rpi-icinga/issues) 
-[![GitHub Stars](https://img.shields.io/github/stars/edgd1er/rpi-icinga.svg?label=github%20%E2%98%85)](https://github.com/edgd1er/rpi-icinga/) 
+[![GitHub Stars](https://img.shields.io/github/stars/edgd1er/rpi-icinga?label=github%20%E2%98%85)](https://github.com/edgd1er/rpi-icinga/stars) 
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/edgd1er/rpi-icinga-nconf.svg)](https://hub.docker.com/r/edgd1er/rpi-icinga-nconf/) [![License](https://img.shields.io/github/license/edgd1er/rpi-icinga.svg)](LICENSE)
 
@@ -22,13 +22,14 @@ buster debian image is the last version available as icinga and nconf are EOL an
 ## Informations
 
 * multi-arch thanks to buildx ( armv7,arm64, amd64 ). arm/v6 image is no more available (2022).
-* based on debian:buster-slim (Dockerfile.all)
+* based on debian:buster-slim (Dockerfile)
 * apache 2.4
 * [icinga 1.14.2](https://github.com/Icinga/icinga-core) / [Nconf 1.4](https://github.com/Bonsaif/new-nconf/releases)
 Both are EOL and icinga 1.x is a read only repository. (no updates to expect ;) ) 
 * Automatic backup once a week of icinga and nconf db: ``/usr/share/icinga/backupConfs.sh`` 
 * Import icinga, nconf df from backup: ``/usr/share/icinga/import_backup.sh YYYYMMDD`` 
 * Import into nconf database from existing icinga folder with: ``/usr/share/icinga/import_existing_nconf_into_db.sh``
+* NCONF may be deactivated if MYSQL_HOST is set to NONE.
 * define user and password access.
 * every week clean icinga archives logs over MAXDAYS. rotation is on a daily basis.
 * Enable/Disable external commands through env: EXTERNAL_COMMANDS_ENABLE
@@ -142,9 +143,12 @@ or mount a local file as read only.
 
 ### create database.
 
+
 Nconf needs a database to operate. database credentials (login, pwd, db name) are set in envMysql. Start script create the schema if missing.
 
 /!\ during the script execution, access to the database is define for nconf, the file  /var/ww/html/nconf/config/mysql.php is populated with envMysql values.
+
+If MYSQL_HOST is set to NONE, all nconf actions are bypassed and nconf site is removed from the image.
 
 ### URLS
 

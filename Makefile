@@ -2,7 +2,7 @@ SHELL=/bin/bash
 DOCKER=/usr/bin/docker
 DOCKER_IMAGE_NAME=edgd1er/rpi-icinga-nconf
 PTF=linux/amd64
-DKRFILE=./Dockerfile.all
+DKRFILE=./Dockerfile
 DKRFILEDOC=./Dockerfile.builddoc
 ARCHI := $(shell dpkg --print-architecture)
 IMAGE=rpi-icinga-nconf
@@ -22,7 +22,7 @@ help:
 
 lint:
 	$(DOCKER) run --rm -i hadolint/hadolint < Dockerfile.builddoc
-	$(DOCKER) run --rm -i hadolint/hadolint < Dockerfile.all
+	$(DOCKER) run --rm -i hadolint/hadolint < Dockerfile
 
 doc:
 ifneq ($(shell docker container ls -a|grep -c tmp_doc),0)

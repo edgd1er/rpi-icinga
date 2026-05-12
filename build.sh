@@ -31,8 +31,8 @@ shift $((OPTIND-1))
 
 PTF="linux/amd64"
 # load tag is not compatible with multi ptf.
-docker buildx build ${WHERE} --progress text --platform ${PTF} --build-arg aptcacher=${aptcacher} -f Dockerfile.all -t ${TAG} .
-docker buildx build ${WHERE} --progress text --build-arg aptcacher=${aptcacher} -f Dockerfile.all -t ${TAG} .
+docker buildx build ${WHERE} --progress text --platform ${PTF} --build-arg aptcacher=${aptcacher} -f Dockerfile -t ${TAG} .
+docker buildx build ${WHERE} --progress text --build-arg aptcacher=${aptcacher} -f Dockerfile -t ${TAG} .
 ret=$?
 [[ ${ret} != "0" ]] && echo "\n error while building image" && exit 1
 

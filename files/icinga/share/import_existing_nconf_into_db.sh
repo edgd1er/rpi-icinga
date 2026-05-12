@@ -9,7 +9,12 @@ global=/etc/icinga/global
 simulation=""
 [[ "${simulation}" == "$1" ]] && simulation=" -s"
 
-echo "please, troncate tables before importing"
+if [[ ${DB_HOST:-NONE} == 'NONE' ]]; then
+  echo "no database set"
+  return
+fi
+
+echo "please, truncate tables before importing"
 
 cd /var/www/html/nconf/
 bin/add_items_from_nagios.pl -c timeperiod -f ${global}/timeperiods.cfg ${simulation}

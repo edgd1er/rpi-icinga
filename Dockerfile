@@ -7,7 +7,7 @@ ARG aptcacher
 ARG TZ=Europe/Paris
 ARG DEBIAN_FRONTEND=noninteractive
 ARG NCONFDL=https://github.com/Bonsaif/new-nconf/archive/nconf-v1.4.0-final2.tar.gz
-ENV MYSQL_HOST=localhost
+ENV MYSQL_HOST=NONE
 ENV MYSQL_USER=nconf
 ENV MYSQL_PASSWORD=nconf
 ENV MYSQL_DATABASE=nconf
@@ -36,8 +36,13 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 #hadolint ignore=DL3008,SC2016
 RUN if [[ -n ${aptcacher} ]]; then echo "Acquire::http::Proxy \"http://${aptcacher}:3142\";" >/etc/apt/apt.conf.d/01proxy && \
     echo "Acquire::https::Proxy \"http://${aptcacher}:3142\";" >>/etc/apt/apt.conf.d/01proxy ; fi && \
+    # use archive repository
+    echo "deb http://archive.debian.org/debian/ buster contrib main non-free" >/etc/apt/sources.list.d/archive_debian.list && \
+    echo "deb http://archive.debian.org/debian-security/ buster/updates contrib main non-free" >> /etc/apt/sources.list.d/archive_debian.list && \
+    cat /etc/apt/sources.list && \
     #allow mibs strings
     sed -i 's/main$/main contrib non-free/' /etc/apt/sources.list && \
+    rm /etc/apt/sources.list && \
     #install icinga \
     apt-get update && apt-get upgrade -y && export DEBIAN_FRONTEND=noninteractive && \
     apt-get -o Dpkg::Options::="--force-confold" install -qy --no-install-recommends curl ssl-cert ca-certificates \
@@ -137,7 +142,8 @@ COPY files/deployment.ini /var/www/html/nconf/config/deployment.ini
 ENV TZ=${TZ}
 
 # Expose volumes
-VOLUME ["/var/cache/icinga", "/var/log/icinga"]
+VOLUME ["/var/cache/icinga", "/var/log/icinga", "/var/log/apache2", "/etc/icinga/", \
+        "/tmp" ,"/var/www/html/nconf/output", "/var/backups/"]
 
 # Expose ports
 EXPOSE 80

@@ -6,6 +6,11 @@ set -e
 
 [[ $# -eq 0 ]] && echo -e "\n/!\ Missing arg, YYYY-MM-DD is needed.\n" && exit || echo
 
+if [[ ${DB_HOST:-NONE} == 'NONE' ]]; then
+  echo "no database set"
+  return
+fi
+
 ARC_DIR=/var/archives/$1
 [[ ! -d ${ARC_DIR} ]] && echo -e "\n/!\ Error, $ARC_DIR not found.exit" && exit 1 || echo
 
