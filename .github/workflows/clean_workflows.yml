@@ -21,6 +21,11 @@ on:
       - master
       - dev
       # A workflow run is made up of one or more jobs that can run sequentially or in parallel
+
+permissions:
+  actions: write
+  contents: read
+
 jobs:
   # This workflow contains a single job called "build"
   clean:
